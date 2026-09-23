@@ -1,0 +1,364 @@
+.container {
+    padding: 1.5rem;
+    font-family: Poppins, sans-serif
+}
+
+.grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem
+}
+
+.grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem
+}
+
+.mb1 {
+    margin-bottom: 1rem
+}
+
+.btnPrimary {
+    font-size: 13px;
+    background: #185FA5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer
+}
+
+.formBox {
+    margin-top: 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap
+}
+
+.labelSmall {
+    font-size: 12px;
+    color: #6b7280;
+    display: block;
+    margin-bottom: 4px
+}
+
+.inputField {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    outline: none
+}
+
+.selectField {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    outline: none;
+    background: #fff
+}
+
+.inputWide {
+    width: 220px
+}
+
+.selectNarrow {
+    width: 180px
+}
+
+.btnGreen {
+    padding: 8px 16px;
+    background: #16a34a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer
+}
+
+.btnGreen[disabled] {
+    opacity: 0.6
+}
+
+.tableCard {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden
+}
+
+.cardHeader {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb
+}
+
+.cardTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827
+}
+
+.statGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem
+}
+
+.statCard {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb
+}
+
+.statNumber {
+    font-size: 28px;
+    font-weight: 600;
+    color: #111827
+}
+
+.statLabel {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px
+}
+
+.tableRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 1.25rem;
+    border-bottom: 1px solid #f9fafb
+}
+
+.tableRowFlex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 1.25rem;
+    border-bottom: 1px solid #f9fafb
+}
+
+.tableItem {
+    padding: 10px 1.25rem;
+    border-bottom: 1px solid #f9fafb
+}
+
+.itemTitle {
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 4px
+}
+
+.muted {
+    font-size: 11px;
+    color: #9ca3af
+}
+
+.mutedAlt {
+    font-size: 11px;
+    color: #6b7280
+}
+
+.pillSuccess {
+    font-size: 11px;
+    color: #16a34a;
+    background: #dcfce7;
+    padding: 2px 8px;
+    border-radius: 99px
+}
+
+.btnSmall {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #185FA5;
+    color: #fff;
+    border: none;
+    cursor: pointer
+}
+
+.btnSmallDisabled {
+    opacity: 0.5
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #185FA5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0
+}
+
+.loadingRow {
+    padding: 1rem;
+    color: #6b7280;
+    font-size: 13px
+}
+
+.expandable {
+    cursor: pointer
+}
+
+.expandable:hover {
+    background: #f9fafb
+}
+
+.detailsBox {
+    background: #f9fafb;
+    padding: 12px 1.25rem;
+    border-bottom: 1px solid #f0f0f0
+}
+
+.detailsText {
+    font-size: 13px;
+    color: #6b7280
+}
+
+.noData {
+    padding: 1rem;
+    font-size: 13px;
+    color: #9ca3af
+}
+
+.detailsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+}
+
+.headerTitle {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px
+}
+
+.headerSubtitle {
+    font-size: 13px;
+    color: #6b7280
+}
+
+.selectTiny {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    outline: none
+}
+
+.btnEnroll {
+    font-size: 12px;
+    background: #185FA5;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer
+}
+
+.btnEnroll[disabled] {
+    opacity: 0.6
+}
+
+.navGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem
+}
+
+.navCard {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: box-shadow 0.15s
+}
+
+.navCard:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08)
+}
+
+.navCardLabel {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px
+}
+
+.navCardDesc {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 12px
+}
+
+.navCardArrow {
+    font-size: 12px;
+    color: #9ca3af
+}
+
+.itemClickable {
+    cursor: pointer;
+    flex: 1;
+}
+
+.itemClickable:hover .itemTitle {
+    color: #185FA5;
+    text-decoration: underline;
+}
+
+.rowActions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btnVerAlumnos {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: #eff6ff;
+    color: #185FA5;
+    border: 1px solid #bfdbfe;
+    cursor: pointer;
+    white-space: nowrap
+}
+
+.btnUnenroll {
+    font-size: 11px;
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 3px 10px;
+    cursor: pointer;
+    white-space: nowrap
+}
+
+.btnUnenroll[disabled] { opacity: 0.6 }
+
+.navCardPurple { border-top: 3px solid #7c3aed }
+.navCardBlue   { border-top: 3px solid #185FA5 }
+.navCardGreen  { border-top: 3px solid #16a34a }
+
+.navLabelPurple { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #7c3aed }
+.navLabelBlue   { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #185FA5 }
+.navLabelGreen  { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #16a34a }

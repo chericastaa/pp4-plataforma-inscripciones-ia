@@ -1,0 +1,563 @@
+.container {
+    padding: 1.5rem;
+    font-family: Poppins, sans-serif;
+    max-width: 760px;
+}
+
+.loading {
+    padding: 2rem;
+    color: #6b7280;
+    font-family: Poppins, sans-serif;
+    font-size: 14px;
+}
+
+.backBtn {
+    background: none;
+    border: none;
+    color: #185FA5;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 1.25rem;
+    font-family: Poppins, sans-serif;
+}
+
+.backBtn:hover { text-decoration: underline; }
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.headerIcon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #185FA5, #0d1f35);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 4px 0;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.publishArea {
+    margin-bottom: 1.5rem;
+}
+
+.btnPublish {
+    background: #185FA5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: Poppins, sans-serif;
+}
+
+.btnPublish:hover { background: #378ADD; }
+
+.form {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.formTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 12px 0;
+}
+
+.formRow {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.input {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    font-family: Poppins, sans-serif;
+    outline: none;
+    width: 100%;
+}
+
+.input:focus { border-color: #185FA5; }
+
+.select {
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    font-family: Poppins, sans-serif;
+    outline: none;
+    background: #fff;
+}
+
+.textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    font-family: Poppins, sans-serif;
+    outline: none;
+    resize: vertical;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+.textarea:focus { border-color: #185FA5; }
+
+.formActions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.btnSave {
+    background: #16a34a;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: Poppins, sans-serif;
+}
+
+.btnSave[disabled] { opacity: 0.6; }
+
+.btnCancel {
+    background: #f3f4f6;
+    color: #374151;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: Poppins, sans-serif;
+}
+
+.feed { margin-top: 0.5rem; }
+
+.feedTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+
+.empty {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+.card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1.25rem;
+    margin-bottom: 12px;
+    border-left: 4px solid #e5e7eb;
+}
+
+.cardAviso { border-left-color: #185FA5; }
+.cardLink  { border-left-color: #7c3aed; }
+
+.cardTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.cardBadge {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 99px;
+}
+
+.cardDate {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.cardTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 6px 0;
+}
+
+.cardDesc {
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.6;
+    margin: 0 0 10px 0;
+    white-space: pre-wrap;
+}
+
+.cardLinkBtn {
+    display: inline-block;
+    font-size: 12px;
+    color: #185FA5;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.cardLinkBtn:hover { text-decoration: underline; }
+
+.btnDelete {
+    margin-top: 8px;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    cursor: pointer;
+    font-family: Poppins, sans-serif;
+}
+
+.btnDelete[disabled] { opacity: 0.5; }
+
+/* input con margen inferior para el form de tareas */
+.inputMb {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    font-family: Poppins, sans-serif;
+    outline: none;
+    width: 100%;
+    margin-bottom: 10px;
+}
+.inputMb:focus { border-color: #185FA5; }
+
+/* tabs */
+.tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.5rem;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 10px;
+    width: fit-content;
+}
+
+.tab {
+    padding: 7px 16px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    font-family: Poppins, sans-serif;
+    transition: all 0.15s;
+}
+
+.tab:hover { color: #111827; }
+
+.tabActive {
+    background: #fff;
+    color: #185FA5;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* label fecha */
+.dateLabel {
+    font-size: 13px;
+    color: #374151;
+    white-space: nowrap;
+    align-self: center;
+    font-family: Poppins, sans-serif;
+}
+
+/* tarjetas de tarea */
+.cardTarea { border-left-color: #f59e0b; }
+.cardVencida { border-left-color: #ef4444; background: #fff5f5; }
+
+.cardTopRight {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fechaChip {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+}
+
+.fechaOk { background: #dcfce7; color: #16a34a; }
+.fechaVencida { background: #fee2e2; color: #dc2626; }
+
+.cardActions {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btnEntregada {
+    margin-top: 10px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: Poppins, sans-serif;
+}
+
+.btnEntregar {
+    margin-top: 10px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: none;
+    background: #185FA5;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: Poppins, sans-serif;
+}
+
+.btnEntregar:hover { background: #378ADD; }
+.btnEntregada[disabled], .btnEntregar[disabled] { opacity: 0.5; }
+
+.btnVerEntregas {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    font-size: 12px;
+    color: #374151;
+    cursor: pointer;
+    font-family: Poppins, sans-serif;
+    align-self: flex-start;
+}
+
+.btnVerEntregas:hover { background: #f3f4f6; }
+
+.entregasList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.entregaChip {
+    background: #eff6ff;
+    color: #185FA5;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 99px;
+    border: 1px solid #bfdbfe;
+}
+
+.muted {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* tabla de notas */
+.tablaNotas {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tablaHeader {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #f9fafb;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e5e7eb;
+    
+}
+.tablaHeader span:nth-child(2) {
+    margin-left: -80px;
+}
+
+.tablaFila {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    gap: 12px;
+    padding: 12px 16px;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 13px;
+}
+
+.tablaFila:last-child { border-bottom: none; }
+
+.alumnoNombre {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.avatarSmall {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #185FA5, #0d1f35);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notaBadge {
+    display: inline-block;
+    background: #185FA5;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 99px;
+}
+
+.sinNota {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.notaForm {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.notaInput {
+    width: 60px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    font-family: Poppins, sans-serif;
+    outline: none;
+}
+
+.notaInput:focus { border-color: #185FA5; }
+
+.notaInputWide {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    font-family: Poppins, sans-serif;
+    outline: none;
+}
+
+.notaInputWide:focus { border-color: #185FA5; }
+
+.btnGuardarNota {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #16a34a;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: Poppins, sans-serif;
+}
+
+.btnGuardarNota:hover { background: #15803d; }
+.btnGuardarNota[disabled] { opacity: 0.5; }
+
+/* caja de nota del alumno */
+.miNotaBox {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.notaGrande {
+    font-size: 24px;
+    font-weight: 700;
+    color: #185FA5;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.notaLabel {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.notaComentario {
+    font-size: 14px;
+    color: #374151;
+    font-style: italic;
+}

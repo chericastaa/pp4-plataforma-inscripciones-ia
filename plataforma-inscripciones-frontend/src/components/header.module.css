@@ -1,0 +1,151 @@
+.container {
+    display: flex;
+    min-height: 100vh;
+    font-family: Poppins, sans-serif
+}
+
+.sidebar {
+    width: 220px;
+    background: #0d1f35;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0
+}
+
+.logoSection {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+}
+
+.logoRow {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.logoIcon {
+    width: 36px;
+    height: 36px;
+    background: #185FA5;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.logoTitle {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500
+}
+
+.logoSubtitle {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 10px
+}
+
+.menuContainer {
+    padding: 1rem 0;
+    flex: 1
+}
+
+.menuLabel {
+    padding: 4px 12px 8px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em
+}
+
+.menuItem {
+    padding: 10px 16px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px
+}
+
+.menuItem:hover {
+    background: rgba(255, 255, 255, 0.05)
+}
+
+.menuBullet {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3)
+}
+
+.sidebarFooter {
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1)
+}
+
+.logoutBtn {
+    width: 100%;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    cursor: pointer
+}
+
+.mainColumn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f5f7fa
+}
+
+.topBar {
+    padding: 1rem 1.5rem;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.topLabel {
+    font-size: 14px;
+    color: #6b7280
+}
+
+.topUser {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.userAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #185FA5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500
+}
+
+.userName {
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827
+}
+
+.userRole {
+    font-size: 11px;
+    color: #6b7280
+}
+
+.contentArea {
+    flex: 1;
+    overflow: auto
+}

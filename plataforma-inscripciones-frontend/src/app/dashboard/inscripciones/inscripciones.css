@@ -1,0 +1,142 @@
+.inscripciones-container {
+    padding: 1.5rem;
+    font-family: Poppins, sans-serif;
+}
+
+.inscripciones-header {
+    margin-bottom: 1.5rem;
+}
+
+.inscripciones-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.inscripciones-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.inscripciones-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.inscripciones-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.inscripciones-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.inscripciones-loading,
+.inscripciones-empty {
+    padding: 1rem;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.inscripciones-empty {
+    color: #9ca3af;
+}
+
+.materia-row {
+    padding: 12px 1.25rem;
+    border-bottom: 1px solid #f9fafb;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.15s ease;
+}
+
+.materia-row:hover {
+    background: #f9fafb;
+}
+
+.materia-info {
+    flex: 1;
+}
+
+.materia-nombre {
+    font-size: 13px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.materia-profesor {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+.materia-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.materia-badge {
+    font-size: 11px;
+    color: #185fa5;
+    background: #eff6ff;
+    padding: 2px 8px;
+    border-radius: 99px;
+}
+
+.materia-icon {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.materia-expanded {
+    background: #f9fafb;
+    padding: 12px 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.alumnos-loading,
+.alumnos-empty {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.alumnos-empty {
+    color: #9ca3af;
+}
+
+.alumnos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alumno-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #374151;
+}
+
+.alumno-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
