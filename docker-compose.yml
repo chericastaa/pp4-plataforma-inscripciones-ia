@@ -4,14 +4,14 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: docker123
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pdocker123"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,10 +23,10 @@ services:
     environment:
       DB_HOST: mysql
       DB_USER: root
-      DB_PASSWORD: ${DB_ROOT_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_PASSWORD: docker123
+      DB_NAME: users_db
       DB_PORT: 3306
-      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3001
     depends_on:
       mysql:
         condition: service_healthy
@@ -38,12 +38,10 @@ services:
     environment:
       DB_HOST: mysql
       DB_USER: root
-      DB_PASSWORD: ${DB_ROOT_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_PASSWORD: docker123
+      DB_NAME: academic_db
       DB_PORT: 3306
       PORT: 4000
-      JWT_SECRET: ${JWT_SECRET}
-      USERS_SERVICE_URL: http://users-service:3001
     depends_on:
       mysql:
         condition: service_healthy
