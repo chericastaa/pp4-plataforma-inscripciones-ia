@@ -8,12 +8,12 @@ La plataforma permite a los usuarios (estudiantes) registrarse, autenticarse, e 
 
 ## Arquitectura
 
-El proyecto sigue una **arquitectura de microservicios**, con tres capas principales (frontend, capa de usuarios, capa académica) y una base de datos compartida:
+El proyecto sigue una **arquitectura de microservicios**, con tres capas principales (frontend, capa de usuarios, capa académica) y **bases de datos separadas por servicio**:
 
 ```
 ┌─────────────────────┐
-│      Frontend        │  (Next.js) — puerto 3000
-│  Interfaz de usuario │
+│      Frontend         │  (Next.js) — puerto 3000
+│  Interfaz de usuario  │
 └──────────┬───────────┘
            │ HTTP
            ├─────────────────────┐
@@ -24,11 +24,18 @@ El proyecto sigue una **arquitectura de microservicios**, con tres capas princip
 │   (auth y usuarios)   │  │  (lógica académica)   │
 └──────────┬───────────┘  └──────────┬───────────┘
            │                          │
+           ▼                          ▼
+┌─────────────────────┐  ┌─────────────────────┐
+│      users_db          │  │     academic_db       │
+└─────────────────────┘  └─────────────────────┘
+           │                          │
            └───────────┬──────────────┘
                         ▼
               ┌───────────────────┐
-              │      MySQL          │
-              │   puerto 3306       │
+              │   MySQL (una sola      │
+              │   instancia, dos        │
+              │   bases separadas)     │
+              │   puerto 3306           │
               └───────────────────┘
 ```
 
@@ -51,36 +58,40 @@ Microservicio encargado de todo lo relacionado a usuarios y autenticación:
 - Registro y login de usuarios.
 - Hasheo seguro de contraseñas (`bcrypt`).
 - Generación y validación de tokens de sesión (JWT).
-- Es consultado por el `academic-service` para verificar la identidad de un usuario antes de procesar una inscripción.
-
-Se conecta directamente a la base de datos MySQL para guardar y consultar usuarios.
+- Se conecta a su propia base de datos, `users_db`, donde vive la tabla `usuarios`.
 
 ### 3. Academic Service (`academic-service/`)
 
 Microservicio encargado de la lógica académica del sistema:
-- Gestión de materias, cursos o actividades disponibles.
-- Procesamiento de inscripciones.
-- Se comunica con `users-service` (vía HTTP, usando `axios`) para validar que el usuario que se inscribe existe y está autenticado.
-
-También se conecta directamente a la base de datos MySQL, en tablas separadas de las de usuarios.
+- Gestión de materias, correlativas, inscripciones y calificaciones.
+- Se conecta a su propia base de datos, `academic_db`, separada de la de usuarios.
+- Se comunica con `users-service` **vía HTTP** (usando `axios`, a través de la variable `USERS_SERVICE_URL`) para validar datos del usuario antes de procesar una inscripción.
+- Valida los JWT emitidos por `users-service` de forma local, usando un `JWT_SECRET` compartido entre ambos servicios (sin necesidad de consultar la base de usuarios para eso).
 
 ### Base de datos (MySQL)
 
-Una única instancia de MySQL, compartida por ambos backends (cada uno usa sus propias tablas). Se define y persiste mediante un volumen de Docker (`mysql_data`), así los datos no se pierden al reiniciar los contenedores.
+Una única instancia de MySQL sirve a ambos backends, pero cada uno tiene su **propia base de datos separada**, sin tablas compartidas:
+
+- `users_db` → usada exclusivamente por `users-service` (tabla `usuarios`).
+- `academic_db` → usada exclusivamente por `academic-service` (tablas `materias`, `correlativas`, `inscripciones`, `calificaciones`).
+
+Los dos servicios no acceden a la base del otro por SQL. Cuando `academic-service` necesita datos de un usuario, lo hace por HTTP contra `users-service`, no consultando su base directamente.
+
+Las bases y sus tablas se crean automáticamente la primera vez que el contenedor de MySQL arranca con el volumen vacío, mediante los scripts SQL en `init-scripts/` (montados en `/docker-entrypoint-initdb.d`). Los datos persisten entre reinicios gracias al volumen de Docker `mysql_data` — pero si se borra ese volumen (`docker-compose down -v`), las bases se recrean desde cero a partir de esos scripts.
 
 ## Por qué esta arquitectura
 
-Separar el sistema en servicios independientes (en vez de un solo backend) permite:
+Separar el sistema en servicios independientes, cada uno con su propia base de datos, permite:
 - Que cada equipo/persona pueda trabajar y desplegar su parte sin afectar a las demás.
-- Escalar o modificar un servicio (por ejemplo, el académico) sin tocar el de usuarios.
-- Que cada servicio tenga su propio ciclo de vida, dependencias y, si hiciera falta, hasta su propia base de datos en el futuro.
+- Escalar o modificar un servicio (por ejemplo, el académico) sin tocar el de usuarios ni su base de datos.
+- Que cada servicio tenga su propio ciclo de vida, dependencias y esquema de datos, de forma totalmente aislada.
 
 ## Cómo correr el proyecto completo
 
 Requiere tener **Docker Desktop** instalado y corriendo. Desde la raíz del proyecto:
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
 Esto levanta los 4 servicios juntos:
@@ -102,10 +113,29 @@ Cada servicio tiene su propio README con más detalle sobre sus variables de ent
 
 ## Variables de entorno
 
-El proyecto usa un archivo `.env` en la raíz (no incluido en el repositorio por seguridad) con, como mínimo:
+Cada servicio backend usa su propio `.env` (no incluido en el repositorio por seguridad).
 
+**users-service:**
 ```
-DB_ROOT_PASSWORD=
-DB_NAME=
+DB_HOST=mysql
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=users_db
+DB_PORT=3306
+PORT=3001
 JWT_SECRET=
 ```
+
+**academic-service:**
+```
+DB_HOST=mysql
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=academic_db
+DB_PORT=3306
+PORT=4000
+JWT_SECRET=
+USERS_SERVICE_URL=http://users-service:3001
+```
+
+`JWT_SECRET` debe ser **idéntico** en ambos servicios, ya que `academic-service` valida localmente los tokens emitidos por `users-service`.
