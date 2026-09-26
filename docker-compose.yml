@@ -42,6 +42,7 @@ services:
       DB_NAME: academic_db
       DB_PORT: 3306
       PORT: 4000
+      USERS_SERVICE_URL: http://users-service:3001
     depends_on:
       mysql:
         condition: service_healthy
