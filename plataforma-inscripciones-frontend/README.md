@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Plataforma de Inscripciones — Frontend
 
-## Getting Started
+Cliente web de la plataforma de inscripciones, construido con Next.js. Consume los servicios `users-service` y `academic-service`.
 
-First, run the development server:
+## Tecnologías
+
+- Next.js 16 (React 19)
+- TypeScript
+- Tailwind CSS 4
+- Radix UI (componentes accesibles: dialog, popover, select, tabs, etc.)
+- React Hook Form + Zod (formularios y validación)
+- Zustand (manejo de estado)
+- Axios (llamadas a la API)
+- Nodemailer (envío de emails, si aplica)
+
+## Requisitos previos
+
+- Node.js 20 o superior (si se corre local, sin Docker)
+- Docker y Docker Compose (si se corre con contenedores)
+- Los servicios `users-service` y `academic-service` deben estar corriendo y accesibles
+
+## Variables de entorno
+
+Revisar si el proyecto tiene un archivo `.env.example` con las variables necesarias. Como mínimo, probablemente se necesite configurar las URLs de los backends, por ejemplo:
+
+| Variable | Descripción |
+|---|---|
+| `NEXT_PUBLIC_USERS_SERVICE_URL` | URL pública del `users-service` |
+| `NEXT_PUBLIC_ACADEMIC_SERVICE_URL` | URL pública del `academic-service` |
+
+> Si el proyecto usa Nodemailer para enviar correos (por ejemplo, notificaciones o recuperación de contraseña), probablemente también se necesiten variables como `EMAIL_HOST`, `EMAIL_USER`, `EMAIL_PASSWORD`. Confirmar cuáles se usan revisando el código donde se llama a `nodemailer`.
+
+## Cómo correrlo
+
+### Con Docker Compose (recomendado)
+
+Desde la raíz del proyecto (donde está el `docker-compose.yml`):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up --build frontend
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+O para levantar todo el sistema junto (recomendado, ya que depende de los dos backends):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+docker compose up --build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+El frontend queda expuesto en el puerto **3000**.
 
-## Learn More
+### En local, sin Docker
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd plataforma-inscripciones-frontend
+npm install
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Asegurate de tener los backends (`users-service` y `academic-service`) corriendo y accesibles, y las variables de entorno configuradas.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts disponibles
 
-## Deploy on Vercel
+| Comando | Descripción |
+|---|---|
+| `npm run dev` | Levanta el servidor de desarrollo de Next.js |
+| `npm run build` | Genera el build de producción |
+| `npm start` | Corre el build de producción |
+| `npm run lint` | Corre el linter (ESLint) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Puerto
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+El frontend corre por defecto en el puerto **3000**.
