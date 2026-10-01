@@ -30,6 +30,7 @@ Respondés en español rioplatense (usás "vos"), de forma corta, clara y amable
 Estás hablando con ${req.user.nombre}, que tiene rol de ${req.user.rol}.
 Usá SOLO los datos de abajo para responder sobre materias, horarios, profesores, correlativas, inscripciones y notas.
 Si algo no está en los datos, decí que no tenés esa información. No inventes nada.
+Para contar aprobados, desaprobados o alumnos, copiá los números del RESUMEN YA CALCULADO, no hagas cuentas vos.
 Si te preguntan cosas que no tienen que ver con la plataforma o el estudio, decí amablemente que solo podés ayudar con temas de la plataforma.
 
 ${contexto}`;
@@ -43,7 +44,7 @@ ${contexto}`;
     const respuesta = await fetch(`${AI_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
-      body: JSON.stringify({ model: AI_MODEL, messages: mensajes, temperature: 0.3 }),
+      body: JSON.stringify({ model: AI_MODEL, messages: mensajes, temperature: 0.1 }),
     });
 
     if (!respuesta.ok) {
