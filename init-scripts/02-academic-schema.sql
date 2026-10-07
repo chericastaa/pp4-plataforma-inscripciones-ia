@@ -1,8 +1,19 @@
 USE academic_db;
 
+CREATE TABLE `carreras` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `resolucion` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 CREATE TABLE `materias` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(100) NOT NULL,
+  `codigo` varchar(10) DEFAULT NULL,
+  `carrera_id` int DEFAULT NULL,
+  `anio` tinyint DEFAULT NULL,
+  `cuatrimestre` tinyint DEFAULT NULL,
   `profesor_id` int DEFAULT NULL,
   `dia` varchar(20) DEFAULT NULL,
   `hora_inicio` time DEFAULT NULL,
@@ -38,4 +49,25 @@ CREATE TABLE `calificaciones` (
   `parcial1` decimal(4,2) DEFAULT NULL,
   `parcial2` decimal(4,2) DEFAULT NULL,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `mesas_finales` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `materia_id` int NOT NULL,
+  `fecha` date NOT NULL,
+  `hora` time DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `materia_id` (`materia_id`),
+  CONSTRAINT `mesas_finales_ibfk_1` FOREIGN KEY (`materia_id`) REFERENCES `materias` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `inscripciones_finales` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `mesa_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `nota` decimal(4,2) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `mesa_id` (`mesa_id`),
+  CONSTRAINT `inscripciones_finales_ibfk_1` FOREIGN KEY (`mesa_id`) REFERENCES `mesas_finales` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

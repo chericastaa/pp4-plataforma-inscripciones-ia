@@ -1,0 +1,104 @@
+.bloque {
+    margin-top: 1rem
+}
+
+.fila {
+    padding: 10px 1.25rem;
+    border-bottom: 1px solid #f3f4f6
+}
+
+.filaPrincipal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px
+}
+
+.info {
+    cursor: pointer;
+    min-width: 0
+}
+
+.codigo {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+    margin-right: 4px
+}
+
+.acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0
+}
+
+.nota {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151
+}
+
+.estado {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    white-space: nowrap
+}
+
+.aprobada {
+    color: #16a34a;
+    background: #dcfce7
+}
+
+.regular {
+    color: #b45309;
+    background: #fef3c7
+}
+
+.cursando {
+    color: #185FA5;
+    background: #dbeafe
+}
+
+.libre {
+    color: #dc2626;
+    background: #fee2e2
+}
+
+.no_cursada {
+    color: #6b7280;
+    background: #f3f4f6
+}
+
+.btnBloqueada {
+    font-size: 11px;
+    background: none;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    border-radius: 6px;
+    padding: 3px 8px;
+    cursor: pointer;
+    white-space: nowrap
+}
+
+.motivos {
+    margin: 8px 0 2px;
+    padding: 8px 12px 8px 28px;
+    background: #f9fafb;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #4b5563;
+    line-height: 1.6
+}
+
+@media (max-width: 640px) {
+    .filaPrincipal {
+        flex-direction: column;
+        align-items: flex-start
+    }
+
+    .acciones {
+        flex-wrap: wrap
+    }
+}

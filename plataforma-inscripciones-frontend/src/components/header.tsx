@@ -22,7 +22,10 @@ export const Header = ({ children }: { children: React.ReactNode }) => {
     { label: "Inscripciones", href: "/dashboard/inscripciones" },
   ],
   profesor: [],
-  alumno: [],
+  alumno: [
+    { label: "Panel principal", href: "/dashboard" },
+    { label: "Plan de estudios", href: "/dashboard/plan" },
+  ],
 };
 
   const topBarPorRol: Record<string, string> = {

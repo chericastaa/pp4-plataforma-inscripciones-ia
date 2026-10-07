@@ -104,7 +104,7 @@ const login = (req, res) => {
 // GET BY ID
 const getUserById = (req, res) => {
   const { id } = req.params;
-  db.query("SELECT id, nombre, email, rol FROM usuarios WHERE id = ?", [id], (err, results) => {
+  db.query("SELECT id, nombre, email, rol, carrera_id FROM usuarios WHERE id = ?", [id], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({message: "Error interno del servidor"});

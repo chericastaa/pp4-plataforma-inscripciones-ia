@@ -1,5 +1,7 @@
 const db = require("../db/db");
 const axios = require("axios");
+const { crearMotor } = require("../motor/reglas");
+const { cargarDatosAlumno } = require("../motor/datos");
 
 // Si no existe en el entorno, usa localhost como fallback
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3001';
@@ -26,6 +28,16 @@ const inscribir = async (req, res) => {
       });
     }
 
+    const motor = crearMotor(await cargarDatosAlumno(user_id));
+    const resultado = motor.puedeCursar(Number(materia_id), user.carrera_id ?? null);
+
+    if (!resultado.permitido) {
+      return res.status(400).json({
+        message: resultado.motivos.join(" · "),
+        motivos: resultado.motivos
+      });
+    }
+
     db.query(
       "SELECT * FROM inscripciones WHERE user_id = ? AND materia_id = ?",
       [user_id, materia_id],
@@ -33,6 +45,25 @@ const inscribir = async (req, res) => {
         if (err) {
           console.error(err);
           return res.status(500).json({ message: "Error interno del servidor" });
+        }
+
+        if (results.length > 0 && motor.estado(Number(materia_id)).estado === "libre") {
+          return db.query(
+            "DELETE FROM calificaciones WHERE user_id = ? AND materia_id = ?",
+            [user_id, materia_id],
+            (err) => {
+              if (err) {
+                console.error(err);
+                return res.status(500).json({ message: "Error interno del servidor" });
+              }
+              res.status(201).json({
+                message: "Te volviste a inscribir para recursar",
+                id: results[0].id,
+                user_id,
+                materia_id
+              });
+            }
+          );
         }
 
         if (results.length > 0) {
