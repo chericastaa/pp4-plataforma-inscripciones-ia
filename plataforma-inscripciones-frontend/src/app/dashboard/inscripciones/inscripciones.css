@@ -1,6 +1,6 @@
 .inscripciones-container {
     padding: 1.5rem;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .inscripciones-header {
@@ -86,7 +86,7 @@
 
 .materia-badge {
     font-size: 11px;
-    color: #185fa5;
+    color: #2456C5;
     background: #eff6ff;
     padding: 2px 8px;
     border-radius: 99px;

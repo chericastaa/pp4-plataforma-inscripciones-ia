@@ -2,6 +2,30 @@
 @import "tw-animate-css";
 
 :root {
+  --noche: #16213e;
+  --noche-2: #223059;
+  --papel: #f2f4f7;
+  --superficie: #ffffff;
+  --linea: #dde2ea;
+  --texto: #1d2433;
+  --texto-suave: #5b6577;
+  --primario: #2456c5;
+  --ciudad: #f5b800;
+  --ap: #1c8c5e;
+  --ap-bg: #e4f4ec;
+  --ap-t: #146644;
+  --reg: #c98a0b;
+  --reg-bg: #fbf0d6;
+  --reg-t: #865700;
+  --cur: #2456c5;
+  --cur-bg: #e2ebfb;
+  --cur-t: #1b44a0;
+  --lib: #c2412d;
+  --lib-bg: #fbe6e2;
+  --lib-t: #9c2f1e;
+  --sin: #8a94a6;
+  --sin-bg: #eceff3;
+  --sin-t: #4c5668;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -76,11 +100,9 @@
   outline-color: var(--ring);
 }
 
-html {
-  font-family: var(--font-geist-sans), sans-serif;
-}
 
 body {
+  font-family: var(--font-ui), system-ui, sans-serif;
   margin: 0;
   background: var(--background);
   color: var(--foreground);
@@ -95,8 +117,8 @@ body {
 
 .dashboard-page {
   padding: 2rem;
-  font-family: Poppins, sans-serif;
-  background: linear-gradient(135deg, #0d1f35, #1a3a5c);
+  font-family: inherit;
+  background: linear-gradient(135deg, #16213E, #1a3a5c);
   min-height: 100vh;
   color: #fff;
 }
@@ -130,7 +152,7 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #185fa5;
+  background: #2456C5;
   display: flex;
   align-items: center;
   justify-content: center;

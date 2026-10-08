@@ -1,6 +1,6 @@
 .container {
     padding: 1.5rem;
-    font-family: Poppins, sans-serif
+    font-family: inherit
 }
 
 .grid3 {
@@ -22,7 +22,7 @@
 
 .btnPrimary {
     font-size: 13px;
-    background: #185FA5;
+    background: #2456C5;
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -182,7 +182,7 @@
     font-size: 11px;
     padding: 2px 8px;
     border-radius: 6px;
-    background: #185FA5;
+    background: #2456C5;
     color: #fff;
     border: none;
     cursor: pointer
@@ -196,7 +196,7 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: #185FA5;
+    background: #2456C5;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -266,7 +266,7 @@
 
 .btnEnroll {
     font-size: 12px;
-    background: #185FA5;
+    background: #2456C5;
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -321,7 +321,7 @@
 }
 
 .itemClickable:hover .itemTitle {
-    color: #185FA5;
+    color: #2456C5;
     text-decoration: underline;
 }
 
@@ -336,7 +336,7 @@
     padding: 3px 10px;
     border-radius: 6px;
     background: #eff6ff;
-    color: #185FA5;
+    color: #2456C5;
     border: 1px solid #bfdbfe;
     cursor: pointer;
     white-space: nowrap
@@ -356,9 +356,9 @@
 .btnUnenroll[disabled] { opacity: 0.6 }
 
 .navCardPurple { border-top: 3px solid #7c3aed }
-.navCardBlue   { border-top: 3px solid #185FA5 }
+.navCardBlue   { border-top: 3px solid #2456C5 }
 .navCardGreen  { border-top: 3px solid #16a34a }
 
 .navLabelPurple { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #7c3aed }
-.navLabelBlue   { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #185FA5 }
+.navLabelBlue   { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #2456C5 }
 .navLabelGreen  { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #16a34a }

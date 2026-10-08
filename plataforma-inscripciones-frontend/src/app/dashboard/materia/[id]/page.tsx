@@ -173,86 +173,70 @@ export default function DetalleMateria() {
           alumnos.length === 0 ? (
             <div className={styles.empty}>No hay alumnos inscriptos en esta materia.</div>
           ) : (
-            <div className={styles.tablaNotas}>
-              <div className={styles.tablaHeader}>
-                <span>Alumno</span>
-                <span>Notas actuales</span>
-                <span>Cargar / Editar notas</span>
-              </div>
+            <div className={styles.notas}>
               {alumnos.map(uid => {
                 const calif = getCalif(uid);
                 const alumno = usuarios.find(u => u.id === uid);
                 if (!alumno || alumno.rol !== "alumno") return null;
                 const promedio = calif ? calcularPromedio(calif.parcial1, calif.parcial2) : null;
+                const fin = promedio && !isNaN(Number(promedio)) ? Number(promedio) : null;
+                const val = (n?: number | null) => (n !== undefined && n !== null ? Number(n).toFixed(2) : "-");
                 return (
-                  <div key={uid} className={styles.tablaFila}>
-                    <div className={styles.alumnoNombre}>
-                      <div className={styles.avatarSmall}>{alumno.nombre.charAt(0).toUpperCase()}</div>
-                      {alumno.nombre}
-                    </div>
-                    <div style={{ fontSize: "12px", display: "flex", flexDirection: "column", gap: "4px", minWidth: "110px" }}>
+                  <div key={uid} className={styles.alumnoCard}>
+                    <div className={styles.alumnoTop}>
+                      <div className={styles.alumnoNombre}>
+                        <div className={styles.avatarSmall}>{alumno.nombre.charAt(0).toUpperCase()}</div>
+                        <div>
+                          <div>{alumno.nombre}</div>
+                          {alumno.email && <div className={styles.alumnoMail}>{alumno.email}</div>}
+                        </div>
+                      </div>
                       {calif ? (
-                        <>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: "4px" }}>
-                            <span style={{ color: "#6b7280" }}>Parcial 1:</span>
-                            <span style={{ fontWeight: 500 }}>{calif.parcial1 !== undefined && calif.parcial1 !== null ? Number(calif.parcial1).toFixed(2) : "-"}</span>
-                          </div>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: "4px" }}>
-                            <span style={{ color: "#6b7280" }}>Parcial 2:</span>
-                            <span style={{ fontWeight: 500 }}>{calif.parcial2 !== undefined && calif.parcial2 !== null ? Number(calif.parcial2).toFixed(2) : "-"}</span>
-                          </div>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: "4px", borderTop: "1px solid #e5e7eb", paddingTop: "4px" }}>
-                            <span style={{ color: "#6b7280" }}>Final:</span>
-                            <span style={{ fontWeight: 600, color: promedio && !isNaN(Number(promedio)) && Number(promedio) < 7 ? "#dc2626" : "#16a34a" }}>
-                              {promedio && !isNaN(Number(promedio)) ? promedio : "-"}
-                              {promedio && !isNaN(Number(promedio)) && Number(promedio) < 7 && ""}
-                            </span>
-                          </div>
-                        </>
+                        <div className={styles.chips}>
+                          <span className={styles.chipNota}>Parcial 1 <b>{val(calif.parcial1)}</b></span>
+                          <span className={styles.chipNota}>Parcial 2 <b>{val(calif.parcial2)}</b></span>
+                          <span className={`${styles.chipNota} ${fin !== null && fin < 7 ? styles.chipBaja : styles.chipFinal}`}>Final <b>{fin !== null ? fin.toFixed(2) : "-"}</b></span>
+                        </div>
                       ) : (
-                        <span className={styles.sinNota}>Sin notas</span>
+                        <span className={styles.sinNota}>Sin notas cargadas</span>
                       )}
                     </div>
                     <div className={styles.notaForm}>
-                      <input
-                        type="number" min="0" max="10" step="0.1" placeholder="P1"
-                        value={notaForm[uid]?.parcial1 ?? ""}
-                        onChange={e => setNotaForm(p => ({ ...p, [uid]: { ...p[uid], parcial1: e.target.value } }))}
-                        className={styles.notaInput}
-                      />
-                      <input
-                        type="number" min="0" max="10" step="0.1" placeholder="P2"
-                        value={notaForm[uid]?.parcial2 ?? ""}
-                        onChange={e => setNotaForm(p => ({ ...p, [uid]: { ...p[uid], parcial2: e.target.value } }))}
-                        className={styles.notaInput}
-                      />
-                      <input
-                        type="text" placeholder="Comentario"
-                        value={notaForm[uid]?.comentario ?? ""}
-                        onChange={e => setNotaForm(p => ({ ...p, [uid]: { ...p[uid], comentario: e.target.value } }))}
-                        className={styles.notaInputWide}
-                      />
-                    <button type="button" onClick={() => guardarNota(uid, !!calif)} disabled={guardandoNota === uid} className={styles.btnGuardarNota}>
-                        {guardandoNota === uid ? "..." : calif ? "Actualizar" : "Guardar"}
-                      </button>
-                      {calif && (
-  <button
-    type="button"
-    onClick={async () => {
-      if (!confirm("¿Borrar las notas de este alumno?")) return;
-      await fetch(`${ACADEMIC_API}/materias/${id}/calificaciones/${uid}`, {
-        method: "DELETE",
-        headers: authHeaders(),
-      });
-      setCalificaciones(prev => prev.filter(c => c.user_id !== uid));
-      setNotaForm(prev => ({ ...prev, [uid]: { parcial1: "", parcial2: "", comentario: "" } }));
-      toast.success("Notas eliminadas");
-    }}
-    style={{ fontSize: "11px", padding: "3px 10px", borderRadius: "6px", background: "#fee2e2", color: "#dc2626", border: "1px solid #fecaca", cursor: "pointer" }}
-  >
-    Limpiar
-  </button>
-)}
+                      <label className={styles.notaCampo}>
+                        <span>Parcial 1</span>
+                        <input type="number" min="0" max="10" step="0.1" value={notaForm[uid]?.parcial1 ?? ""}
+                          onChange={e => setNotaForm(p => ({ ...p, [uid]: { ...p[uid], parcial1: e.target.value } }))} className={styles.notaInput} />
+                      </label>
+                      <label className={styles.notaCampo}>
+                        <span>Parcial 2</span>
+                        <input type="number" min="0" max="10" step="0.1" value={notaForm[uid]?.parcial2 ?? ""}
+                          onChange={e => setNotaForm(p => ({ ...p, [uid]: { ...p[uid], parcial2: e.target.value } }))} className={styles.notaInput} />
+                      </label>
+                      <label className={`${styles.notaCampo} ${styles.notaCampoAncho}`}>
+                        <span>Comentario</span>
+                        <input type="text" value={notaForm[uid]?.comentario ?? ""}
+                          onChange={e => setNotaForm(p => ({ ...p, [uid]: { ...p[uid], comentario: e.target.value } }))} className={styles.notaInputWide} />
+                      </label>
+                      <div className={styles.notaBotones}>
+                        <button type="button" onClick={() => guardarNota(uid, !!calif)} disabled={guardandoNota === uid} className={styles.btnGuardarNota}>
+                          {guardandoNota === uid ? "..." : calif ? "Actualizar" : "Guardar"}
+                        </button>
+                        {calif && (
+                          <button
+                            type="button"
+                            className={styles.btnLimpiar}
+                            onClick={async () => {
+                              if (!confirm("¿Borrar las notas de este alumno?")) return;
+                              await fetch(`${ACADEMIC_API}/materias/${id}/calificaciones/${uid}`, { method: "DELETE", headers: authHeaders() });
+                              setCalificaciones(prev => prev.filter(c => c.user_id !== uid));
+                              setNotaForm(prev => ({ ...prev, [uid]: { parcial1: "", parcial2: "", comentario: "" } }));
+                              toast.success("Notas eliminadas");
+                            }}
+                          >
+                            Borrar notas
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

@@ -1,25 +1,25 @@
 .container {
     padding: 1.5rem;
-    font-family: Poppins, sans-serif;
-    max-width: 760px;
+    font-family: inherit;
+    max-width: 960px;
 }
 
 .loading {
     padding: 2rem;
     color: #6b7280;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     font-size: 14px;
 }
 
 .backBtn {
     background: none;
     border: none;
-    color: #185FA5;
+    color: #2456C5;
     font-size: 13px;
     cursor: pointer;
     padding: 0;
     margin-bottom: 1.25rem;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .backBtn:hover { text-decoration: underline; }
@@ -39,7 +39,7 @@
     width: 52px;
     height: 52px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #185FA5, #0d1f35);
+    background: linear-gradient(135deg, #2456C5, #16213E);
     color: #fff;
     font-size: 22px;
     font-weight: 700;
@@ -67,7 +67,7 @@
 }
 
 .btnPublish {
-    background: #185FA5;
+    background: #2456C5;
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -75,7 +75,7 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .btnPublish:hover { background: #378ADD; }
@@ -106,19 +106,19 @@
     border-radius: 8px;
     border: 1px solid #d1d5db;
     font-size: 13px;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     outline: none;
     width: 100%;
 }
 
-.input:focus { border-color: #185FA5; }
+.input:focus { border-color: #2456C5; }
 
 .select {
     padding: 9px 12px;
     border-radius: 8px;
     border: 1px solid #d1d5db;
     font-size: 13px;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     outline: none;
     background: #fff;
 }
@@ -129,14 +129,14 @@
     border-radius: 8px;
     border: 1px solid #d1d5db;
     font-size: 13px;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     outline: none;
     resize: vertical;
     margin-bottom: 10px;
     box-sizing: border-box;
 }
 
-.textarea:focus { border-color: #185FA5; }
+.textarea:focus { border-color: #2456C5; }
 
 .formActions {
     display: flex;
@@ -153,7 +153,7 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .btnSave[disabled] { opacity: 0.6; }
@@ -166,7 +166,7 @@
     padding: 8px 18px;
     font-size: 13px;
     cursor: pointer;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .feed { margin-top: 0.5rem; }
@@ -199,7 +199,7 @@
     border-left: 4px solid #e5e7eb;
 }
 
-.cardAviso { border-left-color: #185FA5; }
+.cardAviso { border-left-color: #2456C5; }
 .cardLink  { border-left-color: #7c3aed; }
 
 .cardTop {
@@ -241,7 +241,7 @@
 .cardLinkBtn {
     display: inline-block;
     font-size: 12px;
-    color: #185FA5;
+    color: #2456C5;
     text-decoration: none;
     font-weight: 600;
     margin-bottom: 8px;
@@ -258,7 +258,7 @@
     color: #dc2626;
     border: 1px solid #fecaca;
     cursor: pointer;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .btnDelete[disabled] { opacity: 0.5; }
@@ -270,12 +270,12 @@
     border-radius: 8px;
     border: 1px solid #d1d5db;
     font-size: 13px;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     outline: none;
     width: 100%;
     margin-bottom: 10px;
 }
-.inputMb:focus { border-color: #185FA5; }
+.inputMb:focus { border-color: #2456C5; }
 
 /* tabs */
 .tabs {
@@ -297,7 +297,7 @@
     font-weight: 500;
     color: #6b7280;
     cursor: pointer;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     transition: all 0.15s;
 }
 
@@ -305,7 +305,7 @@
 
 .tabActive {
     background: #fff;
-    color: #185FA5;
+    color: #2456C5;
     font-weight: 600;
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
@@ -316,7 +316,7 @@
     color: #374151;
     white-space: nowrap;
     align-self: center;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 /* tarjetas de tarea */
@@ -356,7 +356,7 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .btnEntregar {
@@ -364,12 +364,12 @@
     padding: 7px 16px;
     border-radius: 8px;
     border: none;
-    background: #185FA5;
+    background: #2456C5;
     color: #fff;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .btnEntregar:hover { background: #378ADD; }
@@ -383,7 +383,7 @@
     font-size: 12px;
     color: #374151;
     cursor: pointer;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     align-self: flex-start;
 }
 
@@ -397,7 +397,7 @@
 
 .entregaChip {
     background: #eff6ff;
-    color: #185FA5;
+    color: #2456C5;
     font-size: 12px;
     font-weight: 500;
     padding: 3px 10px;
@@ -460,7 +460,7 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #185FA5, #0d1f35);
+    background: linear-gradient(135deg, #2456C5, #16213E);
     color: #fff;
     font-size: 12px;
     font-weight: 700;
@@ -472,7 +472,7 @@
 
 .notaBadge {
     display: inline-block;
-    background: #185FA5;
+    background: #2456C5;
     color: #fff;
     font-size: 13px;
     font-weight: 700;
@@ -497,11 +497,11 @@
     border-radius: 6px;
     border: 1px solid #d1d5db;
     font-size: 13px;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     outline: none;
 }
 
-.notaInput:focus { border-color: #185FA5; }
+.notaInput:focus { border-color: #2456C5; }
 
 .notaInputWide {
     flex: 1;
@@ -509,11 +509,11 @@
     border-radius: 6px;
     border: 1px solid #d1d5db;
     font-size: 13px;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
     outline: none;
 }
 
-.notaInputWide:focus { border-color: #185FA5; }
+.notaInputWide:focus { border-color: #2456C5; }
 
 .btnGuardarNota {
     padding: 6px 14px;
@@ -525,7 +525,7 @@
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
-    font-family: Poppins, sans-serif;
+    font-family: inherit;
 }
 
 .btnGuardarNota:hover { background: #15803d; }
@@ -544,7 +544,7 @@
 .notaGrande {
     font-size: 24px;
     font-weight: 700;
-    color: #185FA5;
+    color: #2456C5;
     line-height: 1;
     margin-bottom: 6px;
 }
@@ -561,3 +561,28 @@
     color: #374151;
     font-style: italic;
 }
+
+
+/* notas por alumno */
+.notas { display: flex; flex-direction: column; gap: 12px; }
+.alumnoCard { background: #fff; border: 1px solid #dde2ea; border-radius: 12px; padding: 14px 16px; }
+.alumnoTop { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.alumnoMail { font-size: 12px; color: #5b6577; font-weight: 400; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chipNota { font-size: 12px; color: #5b6577; background: #f2f4f7; border-radius: 99px; padding: 4px 10px; }
+.chipNota b { color: #1d2433; margin-left: 4px; font-variant-numeric: tabular-nums; }
+.chipFinal { background: #e2f4ea; color: #16794a; }
+.chipFinal b { color: #16794a; }
+.chipBaja { background: #fdecea; color: #b42318; }
+.chipBaja b { color: #b42318; }
+.notaCampo { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #5b6577; }
+.notaCampoAncho { flex: 1; min-width: 180px; }
+.notaCampoAncho .notaInputWide { width: 100%; box-sizing: border-box; }
+.notaBotones { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+.btnLimpiar { padding: 7px 12px; border-radius: 6px; border: 1px solid #f3c6c1; background: #fff; color: #b42318; font-size: 12px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.btnLimpiar:hover { background: #fdecea; }
+.notaForm { align-items: flex-end; flex-wrap: wrap; }
+.notaInput { padding: 8px 10px; }
+.notaInputWide { padding: 8px 10px; }
+.btnGuardarNota { padding: 8px 16px; }
+.notaInput { width: 84px; box-sizing: border-box; }

@@ -1,72 +1,49 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAppStore } from "@/src/store";
 import { authHeaders, ACADEMIC_API } from "@/src/lib/api";
-import base from "../dashboard.module.css";
+import {
+  ETIQUETAS,
+  MateriaPlan,
+  Mesa,
+  cargarPlan,
+  formatearFecha,
+  hhmm,
+  nota1,
+} from "@/src/lib/plan";
 import styles from "./plan.module.css";
 
-type Resultado = { permitido: boolean; motivos: string[] };
-type MateriaPlan = {
-  id: number;
-  codigo: string;
-  nombre: string;
-  anio: number;
-  cuatrimestre: number;
-  estado: "aprobada" | "regular" | "cursando" | "libre" | "no_cursada";
-  nota: number | null;
-  via: "final" | "promocion" | null;
-  correlativas: { id: number; nombre: string; estado: string }[];
-  cursar: Resultado;
-  rendir: Resultado;
-};
-type Mesa = {
-  id: number;
-  fecha: string;
-  hora: string | null;
-  materia_id: number;
-  materia: string;
-  inscripcion_id: number | null;
-  rendir: Resultado;
-};
-
-const etiquetas: Record<MateriaPlan["estado"], string> = {
-  aprobada: "Aprobada",
-  regular: "Regular",
-  cursando: "Cursando",
-  libre: "Libre",
-  no_cursada: "Sin cursar",
-};
-
-const ordinal = (n: number) => `${n}°`;
-
-const formatearFecha = (f: string) =>
-  new Date(f).toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+const horario = (m: MateriaPlan) =>
+  m.dia && m.hora_inicio && m.hora_fin ? `${m.dia} de ${hhmm(m.hora_inicio)} a ${hhmm(m.hora_fin)}` : "Sin horario cargado";
 
 export default function PlanDeEstudios() {
   const { user } = useAppStore();
   const [materias, setMaterias] = useState<MateriaPlan[]>([]);
-  const [carrera, setCarrera] = useState("");
   const [mesas, setMesas] = useState<Mesa[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [carrera, setCarrera] = useState("");
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(false);
+  const [seleccionada, setSeleccionada] = useState<number | null>(null);
   const [procesando, setProcesando] = useState<string | null>(null);
-  const [abierta, setAbierta] = useState<number | null>(null);
 
-  const cargar = async () => {
-    const [planRes, mesasRes] = await Promise.allSettled([
-      fetch(`${ACADEMIC_API}/motor/plan`, { headers: authHeaders() }).then((r) => r.json()),
-      fetch(`${ACADEMIC_API}/finales/mesas`, { headers: authHeaders() }).then((r) => r.json()),
-    ]);
-    if (planRes.status === "fulfilled" && Array.isArray(planRes.value?.materias)) {
-      setMaterias(planRes.value.materias);
-      setCarrera(planRes.value.carrera || "");
-    }
-    if (mesasRes.status === "fulfilled" && Array.isArray(mesasRes.value)) setMesas(mesasRes.value);
-    setLoading(false);
+  const aplicar = (d: Awaited<ReturnType<typeof cargarPlan>>) => {
+    setMaterias(d.materias);
+    setMesas(d.mesas);
+    setCarrera(d.carrera);
+    setError(d.error);
+    setCargando(false);
   };
 
+  const cargar = () => cargarPlan().then(aplicar);
+
   useEffect(() => {
-    if (user?.id) cargar();
+    if (!user?.id) return;
+    cargarPlan().then((d) => {
+      aplicar(d);
+      const id = Number(new URLSearchParams(window.location.search).get("materia"));
+      if (id) setSeleccionada(id);
+    });
   }, [user?.id]);
 
   const accion = async (clave: string, url: string, opciones: RequestInit, exito: string) => {
@@ -86,7 +63,7 @@ export default function PlanDeEstudios() {
     }
   };
 
-  const inscribirCursada = (m: MateriaPlan) =>
+  const cursar = (m: MateriaPlan) =>
     accion(`c${m.id}`, `${ACADEMIC_API}/inscripciones`, {
       method: "POST",
       body: JSON.stringify({ user_id: user?.id, materia_id: m.id }),
@@ -101,108 +78,257 @@ export default function PlanDeEstudios() {
   const bajaFinal = (mesa: Mesa) =>
     accion(`f${mesa.id}`, `${ACADEMIC_API}/finales/inscripciones/${mesa.inscripcion_id}`, { method: "DELETE" }, "Te diste de baja del final");
 
-  const grupos = materias.reduce<Record<string, MateriaPlan[]>>((acc, m) => {
-    const clave = `${ordinal(m.anio)} año · ${ordinal(m.cuatrimestre)} cuatrimestre`;
-    (acc[clave] ||= []).push(m);
-    return acc;
-  }, {});
+  const periodos = useMemo(() => {
+    const mapa = new Map<string, MateriaPlan[]>();
+    materias.forEach((m) => {
+      const clave = `${m.anio}-${m.cuatrimestre}`;
+      mapa.set(clave, [...(mapa.get(clave) ?? []), m]);
+    });
+    return [...mapa.entries()];
+  }, [materias]);
+
+  const actual = materias.find((m) => m.id === seleccionada) ?? null;
+  const requisitos = new Set(actual?.correlativas.map((c) => c.id) ?? []);
+  const habilita = materias.filter((m) => actual && m.correlativas.some((c) => c.id === actual.id));
+  const habilitaIds = new Set(habilita.map((m) => m.id));
 
   const aprobadas = materias.filter((m) => m.estado === "aprobada").length;
-  const mesasVisibles = mesas.filter((m) => m.inscripcion_id || m.rendir.permitido);
+  const finalesAbiertos = mesas.filter((x) => x.inscripcion_id || x.rendir.permitido);
 
-  return (
-    <div className={base.container}>
-      <div className={base.mb1}>
-        <h1 className={base.headerTitle}>Plan de estudios</h1>
-        <p className={base.headerSubtitle}>
-          {carrera} · {aprobadas} de {materias.length} materias aprobadas
+  if (cargando) return <div className={styles.pagina}><p className={styles.vacio}>Cargando tu plan...</p></div>;
+
+  if (error) {
+    return (
+      <div className={styles.pagina}>
+        <p className={styles.vacio}>
+          No pudimos cargar tu plan de estudios. Recargá la página o cerrá sesión y volvé a entrar.
         </p>
       </div>
+    );
+  }
 
-      <div className={base.tableCard}>
-        <div className={base.cardHeader}>
-          <h2 className={base.cardTitle}>Mesas de final disponibles</h2>
+  const mesasDe = (m: MateriaPlan) => mesas.filter((x) => x.materia_id === m.id);
+
+  return (
+    <div className={styles.pagina}>
+      <header>
+        <h1 className={styles.titulo}>Plan de estudios</h1>
+        <p className={styles.subtitulo}>
+          {carrera ? `${carrera}. ` : ""}
+          {aprobadas} de {materias.length} materias aprobadas. Tocá una materia para ver sus correlativas y qué podés hacer con ella.
+        </p>
+      </header>
+
+      {finalesAbiertos.length > 0 && (
+        <section className={styles.finales} aria-label="Finales abiertos">
+          <h2 className={styles.finalesTitulo}>Finales abiertos</h2>
+          <ul className={styles.finalesLista}>
+            {finalesAbiertos.slice(0, 6).map((f) => (
+              <li key={f.id}>
+                <button type="button" className={styles.chip} onClick={() => setSeleccionada(f.materia_id)}>
+                  <span className={styles.chipNombre}>{f.materia}</span>
+                  <span className={styles.chipDato}>
+                    {formatearFecha(f.fecha)}{f.inscripcion_id ? ", anotado" : ""}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <div className={styles.cuerpo}>
+        <div className={styles.mallaMarco}>
+          <div className={styles.malla}>
+            {periodos.map(([clave, lista]) => (
+              <section key={clave} className={styles.columna} aria-label={`Año ${lista[0].anio}, cuatrimestre ${lista[0].cuatrimestre}`}>
+                <h2 className={styles.columnaTitulo}>
+                  Año {lista[0].anio}
+                  <span className={styles.columnaSub}>Cuatrimestre {lista[0].cuatrimestre}</span>
+                </h2>
+                {lista.map((m) => {
+                  const esRequisito = requisitos.has(m.id);
+                  const esHabilitada = habilitaIds.has(m.id);
+                  const clases = [
+                    styles.materia,
+                    styles[`e_${m.estado}`],
+                    seleccionada === m.id ? styles.elegida : "",
+                    esRequisito ? styles.requisito : "",
+                    esHabilitada ? styles.habilitada : "",
+                    actual && seleccionada !== m.id && !esRequisito && !esHabilitada ? styles.apagada : "",
+                  ].join(" ");
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className={clases}
+                      onClick={() => setSeleccionada(seleccionada === m.id ? null : m.id)}
+                      aria-pressed={seleccionada === m.id}
+                    >
+                      <span className={styles.codigo}>{m.codigo}</span>
+                      <span className={styles.nombre}>{m.nombre}</span>
+                      <span className={styles.pie}>
+                        <span className={styles.estado}>{ETIQUETAS[m.estado]}</span>
+                        {m.nota !== null && <span className={styles.nota}>{nota1(Number(m.nota))}</span>}
+                      </span>
+                      {esRequisito && <span className={styles.relacion}>Correlativa</span>}
+                      {esHabilitada && <span className={styles.relacion}>La necesita</span>}
+                    </button>
+                  );
+                })}
+              </section>
+            ))}
+          </div>
         </div>
-        {loading ? (
-          <div className={base.loadingRow}>Cargando...</div>
-        ) : mesasVisibles.length === 0 ? (
-          <div className={base.noData}>No tenés finales para rendir por ahora</div>
-        ) : (
-          mesasVisibles.map((mesa) => (
-            <div key={mesa.id} className={base.tableRowFlex}>
-              <div>
-                <div className={base.itemTitle}>{mesa.materia}</div>
-                <div className={base.muted}>
-                  {formatearFecha(mesa.fecha)}
-                  {mesa.hora ? ` · ${mesa.hora.slice(0, 5)} hs` : ""}
-                </div>
+
+        <aside className={`${styles.detalle} ${actual ? styles.detalleAbierto : ""}`} aria-live="polite">
+          {!actual ? (
+            <p className={styles.detalleVacio}>
+              Elegí una materia de la malla. Vas a ver qué materias necesitás para cursarla y cuáles habilita.
+            </p>
+          ) : (
+            <>
+              <button type="button" className={styles.cerrar} onClick={() => setSeleccionada(null)} aria-label="Cerrar detalle">
+                Cerrar
+              </button>
+              <div className={styles.detalleCodigo}>{actual.codigo}</div>
+              <h2 className={styles.detalleNombre}>{actual.nombre}</h2>
+              <p className={styles.detalleDato}>
+                Año {actual.anio}, cuatrimestre {actual.cuatrimestre}. {horario(actual)}.
+              </p>
+
+              <div className={styles.detalleEstado}>
+                <span className={`${styles.pill} ${styles[`p_${actual.estado}`]}`}>
+                  {ETIQUETAS[actual.estado]}
+                  {actual.via === "promocion" ? " por promoción" : actual.via === "final" ? " con final" : ""}
+                </span>
+                {actual.nota !== null && <span className={styles.detalleNota}>Nota {nota1(Number(actual.nota))}</span>}
               </div>
-              {mesa.inscripcion_id ? (
-                <div className={styles.acciones}>
-                  <span className={base.pillSuccess}>Anotado</span>
-                  <button className={base.btnUnenroll} disabled={procesando === `f${mesa.id}`} onClick={() => bajaFinal(mesa)}>
+
+              <h3 className={styles.detalleSub}>Correlativas</h3>
+              {actual.correlativas.length === 0 ? (
+                <p className={styles.detalleDato}>No tiene correlativas.</p>
+              ) : (
+                <ul className={styles.relaciones}>
+                  {actual.correlativas.map((c) => (
+                    <li key={c.id}>
+                      <button type="button" className={styles.relacionBtn} onClick={() => setSeleccionada(c.id)}>
+                        <span>{c.nombre}</span>
+                        <span className={`${styles.pillChico} ${styles[`p_${c.estado}`]}`}>{ETIQUETAS[c.estado]}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {habilita.length > 0 && (
+                <>
+                  <h3 className={styles.detalleSub}>La necesitan</h3>
+                  <ul className={styles.relaciones}>
+                    {habilita.map((h) => (
+                      <li key={h.id}>
+                        <button type="button" className={styles.relacionBtn} onClick={() => setSeleccionada(h.id)}>
+                          <span>{h.nombre}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
+              <h3 className={styles.detalleSub}>Qué podés hacer</h3>
+              <Acciones
+                m={actual}
+                mesas={mesasDe(actual)}
+                procesando={procesando}
+                onCursar={cursar}
+                onAnotar={anotarFinal}
+                onBaja={bajaFinal}
+              />
+            </>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function Acciones({
+  m,
+  mesas,
+  procesando,
+  onCursar,
+  onAnotar,
+  onBaja,
+}: {
+  m: MateriaPlan;
+  mesas: Mesa[];
+  procesando: string | null;
+  onCursar: (m: MateriaPlan) => void;
+  onAnotar: (x: Mesa) => void;
+  onBaja: (x: Mesa) => void;
+}) {
+  if (m.estado === "aprobada") return <p className={styles.detalleDato}>Ya la aprobaste. No tenés nada pendiente acá.</p>;
+
+  if (m.estado === "cursando") return <p className={styles.detalleDato}>La estás cursando. Cuando cierren las notas vas a ver si queda regular o aprobada.</p>;
+
+  if (m.estado === "regular") {
+    return (
+      <>
+        {!m.rendir.permitido && mesas.every((x) => !x.inscripcion_id) && (
+          <>
+            <p className={styles.detalleDato}>Todavía no podés rendir el final:</p>
+            <ul className={styles.motivos}>
+              {m.rendir.motivos.map((x) => <li key={x}>{x}</li>)}
+            </ul>
+          </>
+        )}
+        {mesas.length === 0 ? (
+          <p className={styles.detalleDato}>No hay mesas de final cargadas para esta materia.</p>
+        ) : (
+          <ul className={styles.mesas}>
+            {mesas.map((x) => (
+              <li key={x.id} className={styles.mesa}>
+                <span>
+                  <span className={styles.mesaFecha}>{formatearFecha(x.fecha)}</span>
+                  <span className={styles.mesaHora}>{x.hora ? `${hhmm(x.hora)} hs` : ""}</span>
+                </span>
+                {x.inscripcion_id ? (
+                  <button className={styles.btnSecundario} disabled={procesando === `f${x.id}`} onClick={() => onBaja(x)}>
                     Darme de baja
                   </button>
-                </div>
-              ) : (
-                <button className={base.btnEnroll} disabled={procesando === `f${mesa.id}`} onClick={() => anotarFinal(mesa)}>
-                  {procesando === `f${mesa.id}` ? "..." : "Anotarme"}
-                </button>
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
-      {Object.entries(grupos).map(([titulo, lista]) => (
-        <div key={titulo} className={`${base.tableCard} ${styles.bloque}`}>
-          <div className={base.cardHeader}>
-            <h2 className={base.cardTitle}>{titulo}</h2>
-          </div>
-          {lista.map((m) => {
-            const bloqueada = !m.cursar.permitido && (m.estado === "no_cursada" || m.estado === "libre");
-            return (
-              <div key={m.id} className={styles.fila}>
-                <div className={styles.filaPrincipal}>
-                  <div className={styles.info} onClick={() => setAbierta(abierta === m.id ? null : m.id)}>
-                    <div className={base.itemTitle}>
-                      <span className={styles.codigo}>{m.codigo}</span> {m.nombre}
-                    </div>
-                    {m.correlativas.length > 0 && (
-                      <div className={base.muted}>Correlativas: {m.correlativas.map((c) => c.nombre).join(", ")}</div>
-                    )}
-                  </div>
-                  <div className={styles.acciones}>
-                    {m.nota !== null && <span className={styles.nota}>{Number(m.nota).toFixed(1)}</span>}
-                    <span className={`${styles.estado} ${styles[m.estado]}`}>
-                      {etiquetas[m.estado]}
-                      {m.via === "promocion" ? " (promoción)" : ""}
-                    </span>
-                    {m.cursar.permitido && (
-                      <button className={base.btnEnroll} disabled={procesando === `c${m.id}`} onClick={() => inscribirCursada(m)}>
-                        {procesando === `c${m.id}` ? "..." : m.estado === "libre" ? "Recursar" : "Cursar"}
-                      </button>
-                    )}
-                    {bloqueada && (
-                      <button className={styles.btnBloqueada} onClick={() => setAbierta(abierta === m.id ? null : m.id)}>
-                        ¿Por qué no puedo?
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {abierta === m.id && (bloqueada || m.estado === "regular") && (
-                  <ul className={styles.motivos}>
-                    {(bloqueada ? m.cursar.motivos : m.rendir.motivos).map((motivo) => (
-                      <li key={motivo}>{motivo}</li>
-                    ))}
-                    {!bloqueada && m.rendir.permitido && <li>Ya podés anotarte al final de esta materia</li>}
-                  </ul>
+                ) : (
+                  <button className={styles.btnPrimario} disabled={!m.rendir.permitido || procesando === `f${x.id}`} onClick={() => onAnotar(x)}>
+                    {procesando === `f${x.id}` ? "Anotando..." : "Anotarme"}
+                  </button>
                 )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {m.cursar.permitido ? (
+        <>
+          <p className={styles.detalleDato}>
+            {m.estado === "libre" ? "Quedaste libre. Podés volver a cursarla." : "Cumplís las correlativas. Podés inscribirte a la cursada."}
+          </p>
+          <button className={styles.btnPrimario} disabled={procesando === `c${m.id}`} onClick={() => onCursar(m)}>
+            {procesando === `c${m.id}` ? "Inscribiendo..." : m.estado === "libre" ? "Recursar" : "Cursar"}
+          </button>
+        </>
+      ) : (
+        <>
+          <p className={styles.detalleDato}>Todavía no podés cursarla:</p>
+          <ul className={styles.motivos}>
+            {m.cursar.motivos.map((x) => <li key={x}>{x}</li>)}
+          </ul>
+        </>
+      )}
+    </>
   );
 }
