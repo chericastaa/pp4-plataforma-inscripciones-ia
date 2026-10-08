@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAppStore } from "@/src/store";
+import { USERS_API } from "@/src/lib/api";
 
 type ApiError = {
   response?: {
@@ -41,7 +42,7 @@ export default function Home() {
   e.preventDefault();
   setLoading(true);
   try {
-    const { data } = await axios.post("http://localhost:3001/acceso", loginData);
+    const { data } = await axios.post(`${USERS_API}/acceso`, loginData);
     const { token, user: userData } = data;
     setUser({ id: userData.id, rol: userData.rol, nombre: userData.nombre });
     document.cookie = `token=${token}; path=/; SameSite=Strict`;
@@ -71,7 +72,7 @@ const handleRegister = async (e: React.FormEvent) => {
   }
   setLoading(true);
   try {
-    const { data } = await axios.post("http://localhost:3001/usuarios", registerData);
+    const { data } = await axios.post(`${USERS_API}/usuarios`, registerData);
     const { token, user: userData } = data;
     setUser({ id: userData.id, rol: userData.rol, nombre: userData.nombre });
     document.cookie = `token=${token}; path=/; SameSite=Strict`;
