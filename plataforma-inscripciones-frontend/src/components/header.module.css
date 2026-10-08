@@ -15,6 +15,36 @@
   height: 100vh;
 }
 
+.sidebar.sidebarOculto {
+  display: none;
+}
+
+.topIzquierda {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.menuToggle {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.menuToggle:hover {
+  border-color: var(--primario);
+}
+
+.menuToggle:focus-visible {
+  outline: 3px solid var(--primario);
+  outline-offset: 2px;
+}
+
 .logoSection {
   padding: 1.5rem 1.25rem;
   display: flex;
@@ -240,6 +270,11 @@
 
   .topLabel {
     display: none;
+  }
+
+  .menuToggle {
+    font-size: 12px;
+    padding: 5px 10px;
   }
 
   .topUser {

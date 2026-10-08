@@ -98,8 +98,42 @@
     border-bottom-right-radius: 4px
 }
 
+.burbujaIA p {
+    margin: 0 0 6px
+}
+
+.burbujaIA ul,
+.burbujaIA ol {
+    margin: 0 0 6px;
+    padding-left: 18px
+}
+
+.burbujaIA ul {
+    list-style: disc
+}
+
+.burbujaIA ol {
+    list-style: decimal
+}
+
+.burbujaIA li {
+    margin-bottom: 3px
+}
+
+.burbujaIA code {
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 1px 4px;
+    font-size: 12px
+}
+
+.burbujaIA > :last-child {
+    margin-bottom: 0
+}
+
 .burbujaIA {
     align-self: flex-start;
+    white-space: normal;
     background: #fff;
     color: #111827;
     border: 1px solid #e5e7eb;

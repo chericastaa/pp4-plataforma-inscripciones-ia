@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logoutServer } from "../actions";
@@ -29,6 +30,7 @@ export const Header = ({ children }: { children: React.ReactNode }) => {
   const { clearStore, user } = useAppStore();
   const router = useRouter();
   const pathname = usePathname();
+  const [menuOculto, setMenuOculto] = useState(false);
 
   const logOut = async () => {
     clearStore();
@@ -45,7 +47,7 @@ export const Header = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className={styles.container}>
-      <aside className={styles.sidebar}>
+      <aside id="menu-lateral" className={`${styles.sidebar} ${menuOculto ? styles.sidebarOculto : ""}`}>
         <div className={styles.logoSection}>
           <div className={styles.logoMark} aria-hidden="true">16</div>
           <div>
@@ -73,7 +75,18 @@ export const Header = ({ children }: { children: React.ReactNode }) => {
       </aside>
       <div className={styles.mainColumn}>
         <div className={styles.topBar}>
-          <div className={styles.topLabel}>{topLabel}</div>
+          <div className={styles.topIzquierda}>
+            <button
+              type="button"
+              className={styles.menuToggle}
+              onClick={() => setMenuOculto(!menuOculto)}
+              aria-expanded={!menuOculto}
+              aria-controls="menu-lateral"
+            >
+              {menuOculto ? "Mostrar menú" : "Ocultar menú"}
+            </button>
+            <div className={styles.topLabel}>{topLabel}</div>
+          </div>
           <div className={styles.topUser}>
             <div className={styles.userAvatar}>{user?.nombre ? user.nombre.charAt(0).toUpperCase() : "U"}</div>
             <div>

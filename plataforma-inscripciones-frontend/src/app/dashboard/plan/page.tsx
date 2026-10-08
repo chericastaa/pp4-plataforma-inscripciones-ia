@@ -26,6 +26,7 @@ export default function PlanDeEstudios() {
   const [error, setError] = useState(false);
   const [seleccionada, setSeleccionada] = useState<number | null>(null);
   const [procesando, setProcesando] = useState<string | null>(null);
+  const [filtro, setFiltro] = useState<number | null>(null);
 
   const aplicar = (d: Awaited<ReturnType<typeof cargarPlan>>) => {
     setMaterias(d.materias);
@@ -87,6 +88,9 @@ export default function PlanDeEstudios() {
     return [...mapa.entries()];
   }, [materias]);
 
+  const numeroCuatri = (m: MateriaPlan) => (m.anio - 1) * 2 + m.cuatrimestre;
+  const visibles = filtro === null ? periodos : periodos.filter(([, lista]) => numeroCuatri(lista[0]) === filtro);
+
   const actual = materias.find((m) => m.id === seleccionada) ?? null;
   const requisitos = new Set(actual?.correlativas.map((c) => c.id) ?? []);
   const habilita = materias.filter((m) => actual && m.correlativas.some((c) => c.id === actual.id));
@@ -137,14 +141,32 @@ export default function PlanDeEstudios() {
         </section>
       )}
 
+      <div className={styles.filtros} role="group" aria-label="Filtrar por cuatrimestre">
+        <span className={styles.filtrosTitulo}>Cuatrimestre</span>
+        <button type="button" className={`${styles.filtro} ${filtro === null ? styles.filtroOn : ""}`} aria-pressed={filtro === null} onClick={() => setFiltro(null)}>
+          Todos
+        </button>
+        {periodos.map(([clave, lista]) => {
+          const n = numeroCuatri(lista[0]);
+          return (
+            <button key={clave} type="button" className={`${styles.filtro} ${filtro === n ? styles.filtroOn : ""}`} aria-pressed={filtro === n} onClick={() => setFiltro(filtro === n ? null : n)}>
+              {n}°
+            </button>
+          );
+        })}
+      </div>
+
       <div className={styles.cuerpo}>
         <div className={styles.mallaMarco}>
-          <div className={styles.malla}>
-            {periodos.map(([clave, lista]) => (
-              <section key={clave} className={styles.columna} aria-label={`Año ${lista[0].anio}, cuatrimestre ${lista[0].cuatrimestre}`}>
+          <div
+            className={styles.malla}
+            style={filtro === null ? undefined : { gridTemplateColumns: "repeat(1, minmax(150px, 280px))", minWidth: 0 }}
+          >
+            {visibles.map(([clave, lista]) => (
+              <section key={clave} className={styles.columna} aria-label={`${numeroCuatri(lista[0])}° cuatrimestre, año ${lista[0].anio}`}>
                 <h2 className={styles.columnaTitulo}>
-                  Año {lista[0].anio}
-                  <span className={styles.columnaSub}>Cuatrimestre {lista[0].cuatrimestre}</span>
+                  {numeroCuatri(lista[0])}° cuatrimestre
+                  <span className={styles.columnaSub}>Año {lista[0].anio}</span>
                 </h2>
                 {lista.map((m) => {
                   const esRequisito = requisitos.has(m.id);

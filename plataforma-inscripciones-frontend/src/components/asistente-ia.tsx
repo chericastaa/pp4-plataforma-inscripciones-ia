@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "../store";
+import { Markdown } from "./markdown";
 import styles from "./asistente-ia.module.css";
 
 type Mensaje = { role: "user" | "assistant"; content: string };
@@ -56,7 +57,7 @@ export const AsistenteIA = () => {
           <div className={styles.cabecera}>
             <div>
               <div className={styles.titulo}>Asistente virtual</div>
-              <div className={styles.subtitulo}>IA local · Qwen 2.5</div>
+              <div className={styles.subtitulo}>Con Gemini</div>
             </div>
             <button className={styles.cerrar} onClick={() => setAbierto(false)} aria-label="Cerrar">×</button>
           </div>
@@ -69,7 +70,7 @@ export const AsistenteIA = () => {
             )}
             {mensajes.map((m, i) => (
               <div key={i} className={m.role === "user" ? styles.burbujaUser : styles.burbujaIA}>
-                {m.content}
+                {m.role === "assistant" ? <Markdown texto={m.content} /> : m.content}
               </div>
             ))}
             {cargando && <div className={styles.burbujaIA}>Pensando...</div>}

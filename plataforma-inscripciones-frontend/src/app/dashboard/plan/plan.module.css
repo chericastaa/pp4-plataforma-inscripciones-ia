@@ -83,6 +83,47 @@
   color: var(--texto-suave);
 }
 
+.filtros {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filtrosTitulo {
+  font-size: 13px;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.filtro {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 40px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.filtro:hover {
+  border-color: var(--primario);
+}
+
+.filtroOn {
+  background: var(--noche);
+  border-color: var(--noche);
+  color: #fff;
+}
+
+.filtro:focus-visible {
+  outline: 3px solid var(--primario);
+  outline-offset: 2px;
+}
+
 .cuerpo {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
