@@ -46,6 +46,7 @@ const formatearFecha = (f: string) =>
 export default function PlanDeEstudios() {
   const { user } = useAppStore();
   const [materias, setMaterias] = useState<MateriaPlan[]>([]);
+  const [carrera, setCarrera] = useState("");
   const [mesas, setMesas] = useState<Mesa[]>([]);
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState<string | null>(null);
@@ -56,7 +57,10 @@ export default function PlanDeEstudios() {
       fetch(`${ACADEMIC_API}/motor/plan`, { headers: authHeaders() }).then((r) => r.json()),
       fetch(`${ACADEMIC_API}/finales/mesas`, { headers: authHeaders() }).then((r) => r.json()),
     ]);
-    if (planRes.status === "fulfilled" && Array.isArray(planRes.value?.materias)) setMaterias(planRes.value.materias);
+    if (planRes.status === "fulfilled" && Array.isArray(planRes.value?.materias)) {
+      setMaterias(planRes.value.materias);
+      setCarrera(planRes.value.carrera || "");
+    }
     if (mesasRes.status === "fulfilled" && Array.isArray(mesasRes.value)) setMesas(mesasRes.value);
     setLoading(false);
   };
@@ -111,7 +115,7 @@ export default function PlanDeEstudios() {
       <div className={base.mb1}>
         <h1 className={base.headerTitle}>Plan de estudios</h1>
         <p className={base.headerSubtitle}>
-          Tecnicatura Superior en Desarrollo de Software · {aprobadas} de {materias.length} materias aprobadas
+          {carrera} · {aprobadas} de {materias.length} materias aprobadas
         </p>
       </div>
 

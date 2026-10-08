@@ -1,3 +1,4 @@
+const db = require("../db/db");
 const { crearMotor } = require("../motor/reglas");
 const { cargarDatosAlumno, obtenerUsuario } = require("../motor/datos");
 
@@ -39,7 +40,11 @@ const getPlan = async (req, res) => {
         };
       });
 
-    res.json({ user_id: userId, carrera_id: carreraId, materias });
+    const [carrera] = carreraId
+      ? await db.promise().query("SELECT nombre FROM carreras WHERE id = ?", [carreraId]).then(([rows]) => rows)
+      : [null];
+
+    res.json({ user_id: userId, carrera_id: carreraId, carrera: carrera?.nombre ?? null, materias });
   } catch (err) {
     console.error("Error en motor/plan:", err);
     res.status(500).json({ message: "Error interno del servidor" });
