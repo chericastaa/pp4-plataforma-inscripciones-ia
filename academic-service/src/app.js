@@ -8,6 +8,7 @@ const profesorRoutes = require("./routes/profesor");
 const adminRoutes = require("./routes/admin");
 const motorRoutes = require("./routes/motor");
 const finalesRoutes = require("./routes/finales");
+const reglasRoutes = require("./routes/reglas");
 
 const app = express();
 app.disable('etag');
@@ -26,5 +27,6 @@ app.use("/admin", adminRoutes);
 app.use("/materias", materiasRoutes);
 app.use("/motor", motorRoutes);
 app.use("/finales", finalesRoutes);
+app.use("/reglas", reglasRoutes);
 
 module.exports = app;

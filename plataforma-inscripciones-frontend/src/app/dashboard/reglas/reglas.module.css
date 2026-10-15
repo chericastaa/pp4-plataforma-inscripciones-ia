@@ -1,0 +1,41 @@
+.pagina { padding: 1.5rem; max-width: 1000px }
+.titulo { font-size: 22px; font-weight: 700; color: var(--texto); letter-spacing: -0.01em; margin: 0 }
+.sub { font-size: 14px; color: var(--texto-suave); margin: 4px 0 0; max-width: 68ch; line-height: 1.5 }
+.barra { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 1.25rem 0 1rem }
+.tabs { display: inline-flex; flex-wrap: wrap; background: #e6e9ef; border-radius: 10px; padding: 3px; gap: 2px }
+.tab { border: none; background: transparent; font: inherit; font-size: 13px; font-weight: 500; color: var(--texto-suave); padding: 7px 14px; border-radius: 8px; cursor: pointer }
+.tab:focus-visible, .campo:focus-visible, .btnChico:focus-visible, .btnOk:focus-visible, .buscar:focus-visible { outline: 3px solid var(--primario); outline-offset: 2px }
+.tabOn { background: #fff; color: var(--texto); box-shadow: 0 1px 2px rgba(22, 33, 62, .12) }
+.buscar { flex: 1; min-width: 180px; max-width: 320px; font: inherit; font-size: 13px; padding: 9px 12px; border: 1px solid var(--linea); border-radius: 10px; background: #fff; color: var(--texto) }
+.form { background: #fff; border: 1px solid var(--linea); border-radius: 12px; padding: 1rem 1.25rem; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 1rem }
+.etiqueta { display: block; font-size: 12px; color: var(--texto-suave); margin-bottom: 4px }
+.campo { font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid var(--linea); border-radius: 8px; background: #fff; color: var(--texto); max-width: 100% }
+.btnOk { font: inherit; font-size: 13px; font-weight: 600; background: #16794a; color: #fff; border: none; border-radius: 8px; padding: 9px 16px; cursor: pointer }
+.btnOk:disabled, .btnChico:disabled { opacity: .5; cursor: default }
+.grupo { background: #fff; border: 1px solid var(--linea); border-radius: 12px; overflow: hidden; margin-bottom: 1rem }
+.grupoTitulo { display: flex; justify-content: space-between; align-items: baseline; margin: 0; padding: 11px 1.25rem; background: #f7f8fa; border-bottom: 1px solid var(--linea); font-size: 13px; font-weight: 700; color: var(--texto) }
+.grupoCant { font-weight: 400; color: var(--texto-suave); font-size: 12px }
+.materia { padding: 12px 1.25rem 14px; border-bottom: 1px solid #eef0f4 }
+.materia:last-child { border-bottom: none }
+.materiaCab { display: flex; gap: 10px; align-items: baseline; margin-bottom: 8px }
+.codigo { font-size: 12px; font-weight: 600; color: var(--texto-suave); font-variant-numeric: tabular-nums }
+.nombre { font-size: 14px; font-weight: 600; color: var(--texto) }
+.sinReglas { margin: 0 0 8px; font-size: 13px; color: var(--texto-suave) }
+.regla { display: grid; grid-template-columns: minmax(0, 1fr) 130px 130px auto; gap: 12px; align-items: end; padding: 8px 0; border-top: 1px dashed #e4e7ee }
+.requerida { font-size: 13px; color: var(--texto); align-self: center }
+.selector { display: block }
+.selector .campo { width: 100% }
+.agregar { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap }
+.filaEq { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 11px 1.25rem; border-bottom: 1px solid #eef0f4; font-size: 13px }
+.carreraEq { display: block; font-size: 12px; color: var(--texto-suave); margin-top: 1px }
+.igual { text-align: center; color: var(--texto-suave); font-weight: 700 }
+.btnChico { font: inherit; font-size: 12px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--linea); background: #fff; color: var(--texto); cursor: pointer }
+.btnAzul { background: var(--primario); border-color: var(--primario); color: #fff }
+.btnPeligro { color: #b42318; border-color: #f3c6c1 }
+.vacio { padding: 2rem 1rem; text-align: center; color: var(--texto-suave); font-size: 14px }
+@media (max-width: 720px) {
+  .regla { grid-template-columns: 1fr 1fr; }
+  .requerida { grid-column: 1 / -1 }
+  .filaEq { grid-template-columns: 1fr auto; }
+  .igual { display: none }
+}

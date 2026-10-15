@@ -34,7 +34,14 @@ const getPlan = async (req, res) => {
           estado: e.estado,
           nota: e.nota,
           via: e.via,
-          correlativas: motor.requeridas(m.id).map((r) => ({ id: r, nombre: motor.nombre(r), estado: motor.estado(r).estado })),
+          correlativas: motor.requisitos(m.id).map((r) => ({
+            id: r.id,
+            nombre: motor.nombre(r.id),
+            estado: motor.estado(r.id).estado,
+            para_cursar: r.para_cursar,
+            para_final: r.para_final,
+          })),
+          equivalente: e.via === "equivalencia" ? e.equivalente : null,
           cursar: motor.puedeCursar(m.id, carreraId),
           rendir: motor.puedeRendir(m.id),
         };

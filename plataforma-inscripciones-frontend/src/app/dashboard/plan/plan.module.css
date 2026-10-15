@@ -124,6 +124,14 @@
   outline-offset: 2px;
 }
 
+.reqDetalle {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--texto-suave);
+}
+
 .cuerpo {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

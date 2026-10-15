@@ -222,7 +222,7 @@ export default function PlanDeEstudios() {
               <div className={styles.detalleEstado}>
                 <span className={`${styles.pill} ${styles[`p_${actual.estado}`]}`}>
                   {ETIQUETAS[actual.estado]}
-                  {actual.via === "promocion" ? " por promoción" : actual.via === "final" ? " con final" : ""}
+                  {actual.via === "promocion" ? " por promoción" : actual.via === "final" ? " con final" : actual.via === "equivalencia" ? ` por equivalencia con ${actual.equivalente}` : ""}
                 </span>
                 {actual.nota !== null && <span className={styles.detalleNota}>Nota {nota1(Number(actual.nota))}</span>}
               </div>
@@ -235,7 +235,12 @@ export default function PlanDeEstudios() {
                   {actual.correlativas.map((c) => (
                     <li key={c.id}>
                       <button type="button" className={styles.relacionBtn} onClick={() => setSeleccionada(c.id)}>
-                        <span>{c.nombre}</span>
+                        <span>
+                          {c.nombre}
+                          <span className={styles.reqDetalle}>
+                            Para cursar: {c.para_cursar === "aprobada" ? "aprobada" : "regular"}. Para el final: {c.para_final === "aprobada" ? "aprobada" : "regular"}.
+                          </span>
+                        </span>
                         <span className={`${styles.pillChico} ${styles[`p_${c.estado}`]}`}>{ETIQUETAS[c.estado]}</span>
                       </button>
                     </li>

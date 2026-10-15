@@ -15,8 +15,9 @@ export type MateriaPlan = {
   hora_fin: string | null;
   estado: Estado;
   nota: number | null;
-  via: "final" | "promocion" | null;
-  correlativas: { id: number; nombre: string; estado: Estado }[];
+  via: "final" | "promocion" | "equivalencia" | null;
+  equivalente: string | null;
+  correlativas: { id: number; nombre: string; estado: Estado; para_cursar: "regular" | "aprobada"; para_final: "regular" | "aprobada" }[];
   cursar: Resultado;
   rendir: Resultado;
 };

@@ -2,18 +2,32 @@ const NOTA_REGULAR = 4;
 const NOTA_PROMOCION = 7;
 const NOTA_FINAL = 4;
 
+const RANGO = { no_cursada: 0, libre: 0, cursando: 1, regular: 2, aprobada: 3 };
+
+const cumple = (estado, exigido) =>
+  exigido === "aprobada" ? estado === "aprobada" : estado === "regular" || estado === "aprobada";
+
 const num = (v) => (v === null || v === undefined ? null : Number(v));
 const hora = (h) => String(h).slice(0, 5);
 
-function crearMotor({ materias, correlativas, inscripciones, calificaciones, finales }) {
+function crearMotor({ materias, correlativas, equivalencias = [], inscripciones, calificaciones, finales }) {
   const porId = new Map(materias.map((m) => [m.id, m]));
   const nombre = (id) => porId.get(id)?.nombre ?? `materia ${id}`;
-  const requeridas = (id) => correlativas.filter((c) => c.materia_id === id).map((c) => c.materia_requerida_id);
+  const requisitos = (id) =>
+    correlativas
+      .filter((c) => c.materia_id === id)
+      .map((c) => ({ id: c.materia_requerida_id, para_cursar: c.para_cursar || "regular", para_final: c.para_final || "aprobada" }));
+  const requeridas = (id) => requisitos(id).map((r) => r.id);
+  const equivalentes = (id) =>
+    equivalencias.flatMap((e) =>
+      e.materia_id === id ? [e.materia_equivalente_id] : e.materia_equivalente_id === id ? [e.materia_id] : []
+    );
   const inscripto = (id) => inscripciones.some((i) => i.materia_id === id);
+  const propios = new Map();
   const cache = new Map();
 
-  function estado(id) {
-    if (cache.has(id)) return cache.get(id);
+  function estadoPropio(id) {
+    if (propios.has(id)) return propios.get(id);
 
     let resultado = { estado: "no_cursada", nota: null, via: null };
 
@@ -40,8 +54,23 @@ function crearMotor({ materias, correlativas, inscripciones, calificaciones, fin
       resultado = { estado: "cursando", nota: null, via: null };
     }
 
-    cache.set(id, resultado);
+    propios.set(id, resultado);
     return resultado;
+  }
+
+  function estado(id) {
+    if (cache.has(id)) return cache.get(id);
+
+    let mejor = estadoPropio(id);
+    for (const otra of equivalentes(id)) {
+      const e = estadoPropio(otra);
+      if ((e.estado === "aprobada" || e.estado === "regular") && RANGO[e.estado] > RANGO[mejor.estado]) {
+        mejor = { ...e, via: "equivalencia", equivalente: nombre(otra) };
+      }
+    }
+
+    cache.set(id, mejor);
+    return mejor;
   }
 
   function seSuperponen(a, b) {
@@ -61,14 +90,14 @@ function crearMotor({ materias, correlativas, inscripciones, calificaciones, fin
     }
 
     const actual = estado(id).estado;
-    if (actual === "aprobada") motivos.push(`Ya aprobaste ${m.nombre}`);
-    if (actual === "regular") motivos.push(`Ya tenés la cursada regular de ${m.nombre}, te falta rendir el final`);
+    const porEquivalencia = estado(id).via === "equivalencia" ? ` por equivalencia con ${estado(id).equivalente}` : "";
+    if (actual === "aprobada") motivos.push(`Ya aprobaste ${m.nombre}${porEquivalencia}`);
+    if (actual === "regular") motivos.push(`Ya tenés la cursada regular de ${m.nombre}${porEquivalencia}, te falta rendir el final`);
     if (actual === "cursando") motivos.push(`Ya estás cursando ${m.nombre}`);
 
-    for (const r of requeridas(id)) {
-      const e = estado(r).estado;
-      if (e !== "regular" && e !== "aprobada") {
-        motivos.push(`Para cursar ${m.nombre} necesitás tener regularizada ${nombre(r)}`);
+    for (const r of requisitos(id)) {
+      if (!cumple(estado(r.id).estado, r.para_cursar)) {
+        motivos.push(`Para cursar ${m.nombre} necesitás tener ${r.para_cursar === "aprobada" ? "aprobada" : "regularizada"} ${nombre(r.id)}`);
       }
     }
 
@@ -97,16 +126,16 @@ function crearMotor({ materias, correlativas, inscripciones, calificaciones, fin
       motivos.push(`Ya estás anotado a una mesa de ${m.nombre}`);
     }
 
-    for (const r of requeridas(id)) {
-      if (estado(r).estado !== "aprobada") {
-        motivos.push(`Para rendir ${m.nombre} necesitás tener aprobada ${nombre(r)}`);
+    for (const r of requisitos(id)) {
+      if (!cumple(estado(r.id).estado, r.para_final)) {
+        motivos.push(`Para rendir ${m.nombre} necesitás tener ${r.para_final === "aprobada" ? "aprobada" : "regularizada"} ${nombre(r.id)}`);
       }
     }
 
     return { permitido: motivos.length === 0, motivos };
   }
 
-  return { estado, puedeCursar, puedeRendir, requeridas, nombre };
+  return { estado, puedeCursar, puedeRendir, requeridas, requisitos, nombre };
 }
 
 module.exports = { crearMotor, NOTA_REGULAR, NOTA_PROMOCION, NOTA_FINAL };

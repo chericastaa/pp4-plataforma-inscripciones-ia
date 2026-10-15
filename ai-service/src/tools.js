@@ -71,7 +71,7 @@ function crearHerramientas(user, token) {
           anio: m.anio,
           cuatrimestre: m.cuatrimestre,
           horario: m.dia ? `${m.dia} de ${String(m.hora_inicio).slice(0, 5)} a ${String(m.hora_fin).slice(0, 5)}` : "sin horario",
-          correlativas: m.correlativas.map((c) => c.nombre),
+          correlativas: m.correlativas.map((c) => ({ materia: c.nombre, para_cursar: c.para_cursar, para_final: c.para_final })),
           ...(user.rol === "alumno" ? { mi_estado: estados[m.estado] } : {}),
         })),
     },
