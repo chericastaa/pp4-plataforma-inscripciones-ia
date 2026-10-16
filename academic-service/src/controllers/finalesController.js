@@ -9,13 +9,16 @@ const getMesas = async (req, res) => {
     const usuario = await obtenerUsuario(req.user.id, req.headers.authorization).catch(() => null);
     const carreraId = usuario?.carrera_id ?? null;
 
+    const incluirPasadas = req.user.rol !== "alumno" && req.query.todas === "1";
+
     const mesas = await q(
-      `SELECT mf.id, mf.fecha, mf.hora, m.id AS materia_id, m.codigo, m.nombre AS materia
+      `SELECT mf.id, mf.fecha, mf.hora, m.id AS materia_id, m.codigo, m.nombre AS materia, m.carrera_id,
+              (SELECT COUNT(*) FROM inscripciones_finales inf WHERE inf.mesa_id = mf.id) AS inscriptos
        FROM mesas_finales mf
        JOIN materias m ON m.id = mf.materia_id
-       WHERE mf.fecha >= CURDATE() AND (? IS NULL OR m.carrera_id = ?)
+       WHERE (? OR mf.fecha >= CURDATE()) AND (? IS NULL OR m.carrera_id = ?)
        ORDER BY mf.fecha, m.codigo`,
-      [carreraId, carreraId]
+      [incluirPasadas ? 1 : 0, carreraId, carreraId]
     );
 
     if (req.user.rol !== "alumno") return res.json(mesas);

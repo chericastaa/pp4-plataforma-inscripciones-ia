@@ -19,6 +19,39 @@ async function pedir(url, token) {
   return data;
 }
 
+async function enviar(url, token, body) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
+  return data;
+}
+
+const AFIRMATIVO = /\b(si|dale|ok|okey|confirmo|confirmado|confirmar|listo|de una|bueno|perfecto|obvio|claro|adelante)\b/;
+
+function confirmado(contexto, nombre) {
+  const mensaje = normalizar(contexto.mensaje);
+  const previos = (contexto.historial || []).filter((m) => m.role === "assistant");
+  const ultimo = normalizar(previos[previos.length - 1]?.content);
+  return AFIRMATIVO.test(mensaje) && !/\bno\b/.test(mensaje) && ultimo.includes("?") && ultimo.includes(normalizar(nombre));
+}
+
+const fechaIso = (f) => String(f).slice(0, 10);
+
+function coincideFecha(fecha, texto) {
+  const iso = fechaIso(fecha);
+  const t = String(texto || "").trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return iso === t;
+  const m = t.match(/^(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?$/);
+  if (!m) return false;
+  const dia = m[1].padStart(2, "0");
+  const mes = m[2].padStart(2, "0");
+  return iso.slice(5) === `${mes}-${dia}` && (!m[3] || iso.slice(0, 4).endsWith(m[3]));
+}
+
 function buscarMateria(materias, texto) {
   const buscado = normalizar(texto);
   if (!buscado) return null;
@@ -38,7 +71,7 @@ const resumen = (m) => ({
   ...(m.nota !== null ? { nota: Number(m.nota) } : {}),
 });
 
-function crearHerramientas(user, token) {
+function crearHerramientas(user, token, contexto = { mensaje: "", historial: [] }) {
   const plan = (userId) =>
     pedir(`${ACADEMIC_API}/motor/plan${userId ? `?user_id=${userId}` : ""}`, token).then((d) => d.materias);
 
@@ -102,6 +135,62 @@ function crearHerramientas(user, token) {
           materias: materias.filter((m) => m.cursar.permitido).map((m) => ({ codigo: m.codigo, materia: m.nombre })),
         };
       },
+    },
+
+    inscribirme_a_cursar: {
+      descripcion: "Inscribe al alumno a la cursada de una materia. Usala solo si el alumno pidió inscribirse. Antes de inscribir hay que pedirle confirmación nombrando la materia; cuando responda que sí, llamala de nuevo.",
+      parametros: { materia: "Nombre de la materia" },
+      soloAlumno: true,
+      ejecutar: ({ materia }) =>
+        conMateria(materia, async (m) => {
+          if (!m.cursar.permitido) return { inscripto: false, materia: m.nombre, motivos: m.cursar.motivos };
+          if (!confirmado(contexto, m.nombre)) {
+            return {
+              inscripto: false,
+              requiere_confirmacion: true,
+              materia: m.nombre,
+              instruccion: `Todavía no se inscribió. Preguntale al alumno si confirma la inscripción a CURSAR ${m.nombre} y esperá su respuesta.`,
+            };
+          }
+          await enviar(`${ACADEMIC_API}/inscripciones`, token, { user_id: user.id, materia_id: m.id });
+          return { inscripto: true, materia: m.nombre, tipo: "cursada" };
+        }),
+    },
+
+    anotarme_a_final: {
+      descripcion: "Anota al alumno a una mesa de final de una materia. Usala solo si el alumno pidió anotarse. Si hay varias fechas, preguntale cuál. Antes de anotar hay que pedirle confirmación nombrando la materia y la fecha; cuando responda que sí, llamala de nuevo.",
+      parametros: { materia: "Nombre de la materia", fecha: "Opcional: fecha de la mesa en formato AAAA-MM-DD, como la devuelve ver_mesas_de_final" },
+      soloAlumno: true,
+      ejecutar: ({ materia, fecha }) =>
+        conMateria(materia, async (m) => {
+          const todas = await pedir(`${ACADEMIC_API}/finales/mesas`, token);
+          const mesas = todas.filter((x) => x.materia_id === m.id);
+          if (!mesas.length) return { anotado: false, materia: m.nombre, error: "No hay mesas de final cargadas para esa materia" };
+
+          const elegida = fecha ? mesas.find((x) => coincideFecha(x.fecha, fecha)) : mesas.length === 1 ? mesas[0] : null;
+          if (!elegida) {
+            return {
+              anotado: false,
+              materia: m.nombre,
+              instruccion: fecha ? "Esa fecha no existe para la materia. Mostrale las fechas y preguntale cuál." : "Hay varias mesas. Preguntale al alumno a cuál fecha quiere anotarse.",
+              mesas: mesas.map((x) => ({ fecha: fechaIso(x.fecha), hora: x.hora ? String(x.hora).slice(0, 5) : null, anotado: Boolean(x.inscripcion_id) })),
+            };
+          }
+
+          const detalle = { materia: m.nombre, fecha: fechaIso(elegida.fecha), hora: elegida.hora ? String(elegida.hora).slice(0, 5) : null };
+          if (elegida.inscripcion_id) return { anotado: false, ya_estaba_anotado: true, ...detalle };
+          if (!elegida.rendir.permitido) return { anotado: false, ...detalle, motivos: elegida.rendir.motivos };
+          if (!confirmado(contexto, m.nombre)) {
+            return {
+              anotado: false,
+              requiere_confirmacion: true,
+              ...detalle,
+              instruccion: `Todavía no se anotó. Preguntale al alumno si confirma anotarse al FINAL de ${m.nombre} del ${detalle.fecha} y esperá su respuesta.`,
+            };
+          }
+          await enviar(`${ACADEMIC_API}/finales/inscripciones`, token, { mesa_id: elegida.id });
+          return { anotado: true, tipo: "final", ...detalle };
+        }),
     },
 
     ver_mesas_de_final: {

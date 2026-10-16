@@ -3,12 +3,19 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "@/src/store";
 import { useRouter } from "next/navigation";
 import { authHeaders, USERS_API, ACADEMIC_API } from "@/src/lib/api";
+import { nombreCarrera } from "@/src/lib/plan";
 import "./inscripciones.css";
 
-type Materia = { id: number; nombre: string; profesor_id: number | null };
+type Materia = { id: number; nombre: string; profesor_id: number | null; carrera_id?: number | null };
 type Alumno = { id: number; nombre: string; email?: string };
 type Usuario = { id: number; nombre: string; rol?: string };
 type Calificacion = { user_id: number; parcial1?: number; parcial2?: number; nota?: number };
+type Mesa = { id: number; fecha: string; hora: string | null; materia_id: number };
+type InscriptoFinal = { id: number; user_id: number; nombre: string | null; nota: number | null };
+
+const fechaLarga = (f: string) =>
+  new Date(f).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const yaPaso = (f: string) => f.slice(0, 10) < new Date().toISOString().slice(0, 10);
 
 export default function PageInscripciones() {
   const { user } = useAppStore();
@@ -20,6 +27,8 @@ export default function PageInscripciones() {
   const [alumnosPorMateria, setAlumnosPorMateria] = useState<Record<number, Alumno[]>>({});
   const [calificacionesPorMateria, setCalificacionesPorMateria] = useState<Record<number, Calificacion[]>>({});
   const [cargandoAlumnos, setCargandoAlumnos] = useState<number | null>(null);
+  const [mesas, setMesas] = useState<Mesa[] | null>(null);
+  const [inscriptosPorMesa, setInscriptosPorMesa] = useState<Record<number, InscriptoFinal[]>>({});
 
   useEffect(() => {
     if (user?.rol !== "admin") { router.push("/dashboard"); return; }
@@ -35,6 +44,27 @@ export default function PageInscripciones() {
     fetchData();
   }, []);
 
+  const cargarFinales = async (materiaId: number) => {
+    let lista = mesas;
+    if (lista === null) {
+      const res = await fetch(`${ACADEMIC_API}/finales/mesas?todas=1`, { headers: authHeaders() })
+        .then(r => r.json())
+        .catch(() => []);
+      lista = Array.isArray(res) ? res : [];
+      setMesas(lista);
+    }
+    const propias = lista.filter(x => x.materia_id === materiaId);
+    const filas = await Promise.all(
+      propias.map(x =>
+        fetch(`${ACADEMIC_API}/finales/mesas/${x.id}/inscriptos`, { headers: authHeaders() })
+          .then(r => r.json())
+          .then(d => [x.id, Array.isArray(d) ? d : []] as [number, InscriptoFinal[]])
+          .catch(() => [x.id, []] as [number, InscriptoFinal[]])
+      )
+    );
+    setInscriptosPorMesa(prev => ({ ...prev, ...Object.fromEntries(filas) }));
+  };
+
   const toggleMateria = async (materiaId: number) => {
     if (expandida === materiaId) { setExpandida(null); return; }
     setExpandida(materiaId);
@@ -44,6 +74,7 @@ export default function PageInscripciones() {
       const [inscRes, califRes] = await Promise.allSettled([
         fetch(`${ACADEMIC_API}/inscripciones/materias/${materiaId}/alumnos`, { headers: authHeaders() }).then(r => r.json()),
         fetch(`${ACADEMIC_API}/materias/${materiaId}/calificaciones`, { headers: authHeaders() }).then(r => r.json()),
+        cargarFinales(materiaId),
       ]);
 
       if (inscRes.status === "fulfilled") {
@@ -68,6 +99,8 @@ export default function PageInscripciones() {
   const nombreProfesor = (id: number | null) =>
     id ? (usuarios.find(u => u.id === id)?.nombre ?? `ID: ${id}`) : "Sin asignar";
 
+  const mesasDe = (materiaId: number) => (mesas ?? []).filter(x => x.materia_id === materiaId);
+
   const getNotaAlumno = (materiaId: number, alumnoId: number) =>
     calificacionesPorMateria[materiaId]?.find(c => c.user_id === alumnoId);
 
@@ -75,7 +108,7 @@ export default function PageInscripciones() {
     <div className="inscripciones-container">
       <div className="inscripciones-header">
         <h1 className="inscripciones-title">Inscripciones</h1>
-        <p className="inscripciones-subtitle">Alumnos inscriptos por materia</p>
+        <p className="inscripciones-subtitle">Abrí una materia para ver quién se inscribió a cursar y quién se anotó a cada final.</p>
       </div>
 
       <div className="inscripciones-card">
@@ -102,7 +135,7 @@ export default function PageInscripciones() {
                       </span>
                     )}
                   </div>
-                  <div className="materia-profesor">Profesor: {nombreProfesor(m.profesor_id)}</div>
+                  <div className="materia-profesor">{m.carrera_id ? `${nombreCarrera(m.carrera_id)} · ` : ""}Profesor: {nombreProfesor(m.profesor_id)}</div>
                 </div>
                 <span className="materia-icon">{expandida === m.id ? "▲" : "▼"}</span>
               </div>
@@ -117,40 +150,85 @@ export default function PageInscripciones() {
             {expandida === m.id && (
               <div className="materia-expanded">
                 {cargandoAlumnos === m.id ? (
-                  <div className="alumnos-loading">Cargando alumnos...</div>
-                ) : alumnosPorMateria[m.id]?.length === 0 ? (
-                  <div className="alumnos-empty">Sin alumnos inscriptos</div>
+                  <div className="alumnos-loading">Cargando inscriptos...</div>
                 ) : (
-                  <div className="alumnos-list">
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 12px", fontSize: "11px", color: "#9ca3af", fontWeight: 600 }}>
-                      <span>Alumno</span>
-                      <span style={{ display: "flex", gap: "24px" }}>
-                        <span>P1</span>
-                        <span>P2</span>
-                        <span>Final</span>
-                      </span>
-                    </div>
-                    {alumnosPorMateria[m.id]?.map(a => {
-                      const nota = getNotaAlumno(m.id, a.id);
-                      const final = nota?.nota !== undefined && nota.nota !== null ? Number(nota.nota).toFixed(2) : "-";
-                      const aprueba = nota?.nota !== undefined && nota.nota !== null && Number(nota.nota) >= 7;
-                      return (
-                        <div key={a.id} className="alumno-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <div className="alumno-avatar">{a.nombre.charAt(0).toUpperCase()}</div>
-                            {a.nombre}
-                          </div>
-                          <div style={{ display: "flex", gap: "24px", fontSize: "12px", minWidth: "120px", justifyContent: "flex-end" }}>
-                            <span>{nota?.parcial1 !== undefined && nota.parcial1 !== null ? Number(nota.parcial1).toFixed(2) : "-"}</span>
-                            <span>{nota?.parcial2 !== undefined && nota.parcial2 !== null ? Number(nota.parcial2).toFixed(2) : "-"}</span>
-                            <span style={{ fontWeight: 600, color: final === "-" ? "#9ca3af" : aprueba ? "#16a34a" : "#dc2626" }}>
-                              {final}
-                            </span>
-                          </div>
+                  <>
+                    <h3 className="seccion-titulo">
+                      Inscriptos a cursar
+                      <span className="seccion-cuenta">{alumnosPorMateria[m.id]?.length ?? 0}</span>
+                    </h3>
+                    {!alumnosPorMateria[m.id]?.length ? (
+                      <div className="alumnos-empty">Nadie se inscribió a cursar esta materia.</div>
+                    ) : (
+                      <div className="alumnos-list">
+                        <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 12px", fontSize: "11px", color: "#9ca3af", fontWeight: 600 }}>
+                          <span>Alumno</span>
+                          <span style={{ display: "flex", gap: "24px" }}>
+                            <span>P1</span>
+                            <span>P2</span>
+                            <span>Nota</span>
+                          </span>
                         </div>
-                      );
-                    })}
-                  </div>
+                        {alumnosPorMateria[m.id]?.map(a => {
+                          const nota = getNotaAlumno(m.id, a.id);
+                          const final = nota?.nota !== undefined && nota.nota !== null ? Number(nota.nota).toFixed(2) : "-";
+                          const aprueba = nota?.nota !== undefined && nota.nota !== null && Number(nota.nota) >= 7;
+                          return (
+                            <div key={a.id} className="alumno-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <div className="alumno-avatar">{a.nombre.charAt(0).toUpperCase()}</div>
+                                {a.nombre}
+                              </div>
+                              <div style={{ display: "flex", gap: "24px", fontSize: "12px", minWidth: "120px", justifyContent: "flex-end" }}>
+                                <span>{nota?.parcial1 !== undefined && nota.parcial1 !== null ? Number(nota.parcial1).toFixed(2) : "-"}</span>
+                                <span>{nota?.parcial2 !== undefined && nota.parcial2 !== null ? Number(nota.parcial2).toFixed(2) : "-"}</span>
+                                <span style={{ fontWeight: 600, color: final === "-" ? "#9ca3af" : aprueba ? "#16a34a" : "#dc2626" }}>
+                                  {final}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <h3 className="seccion-titulo seccion-final">Inscriptos a finales</h3>
+                    {mesasDe(m.id).length === 0 ? (
+                      <div className="alumnos-empty">Esta materia no tiene mesas de final cargadas.</div>
+                    ) : (
+                      mesasDe(m.id).map(mesa => {
+                        const lista = inscriptosPorMesa[mesa.id] ?? [];
+                        return (
+                          <div key={mesa.id} className="mesa-bloque">
+                            <div className="mesa-cabecera">
+                              <span className="mesa-fecha">
+                                Final del {fechaLarga(mesa.fecha)}{mesa.hora ? `, ${mesa.hora.slice(0, 5)} hs` : ""}
+                              </span>
+                              <span className="mesa-estado">
+                                {yaPaso(mesa.fecha) ? "Ya se rindió" : "Próxima"} · {lista.length} {lista.length === 1 ? "inscripto" : "inscriptos"}
+                              </span>
+                            </div>
+                            {lista.length === 0 ? (
+                              <div className="alumnos-empty">Nadie se anotó a esta mesa.</div>
+                            ) : (
+                              lista.map(i => (
+                                <div key={i.id} className="alumno-row mesa-alumno">
+                                  <div className="alumno-avatar">{(i.nombre ?? "?").charAt(0).toUpperCase()}</div>
+                                  <span className="mesa-nombre">{i.nombre ?? `Alumno ${i.user_id}`}</span>
+                                  <span
+                                    className="mesa-nota"
+                                    style={{ color: i.nota === null ? "#9ca3af" : Number(i.nota) >= 4 ? "#16a34a" : "#dc2626" }}
+                                  >
+                                    {i.nota === null ? "Sin nota" : `Nota ${Number(i.nota).toFixed(1)}`}
+                                  </span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </>
                 )}
               </div>
             )}

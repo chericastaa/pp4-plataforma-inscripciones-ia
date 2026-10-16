@@ -68,7 +68,7 @@ export default function PlanDeEstudios() {
     accion(`c${m.id}`, `${ACADEMIC_API}/inscripciones`, {
       method: "POST",
       body: JSON.stringify({ user_id: user?.id, materia_id: m.id }),
-    }, `Te inscribiste a ${m.nombre}`);
+    }, `Te inscribiste a cursar ${m.nombre}`);
 
   const anotarFinal = (mesa: Mesa) =>
     accion(`f${mesa.id}`, `${ACADEMIC_API}/finales/inscripciones`, {
@@ -124,15 +124,15 @@ export default function PlanDeEstudios() {
       </header>
 
       {finalesAbiertos.length > 0 && (
-        <section className={styles.finales} aria-label="Finales abiertos">
-          <h2 className={styles.finalesTitulo}>Finales abiertos</h2>
+        <section className={styles.finales} aria-label="Mesas de final abiertas">
+          <h2 className={styles.finalesTitulo}>Mesas de final abiertas</h2>
           <ul className={styles.finalesLista}>
             {finalesAbiertos.slice(0, 6).map((f) => (
               <li key={f.id}>
                 <button type="button" className={styles.chip} onClick={() => setSeleccionada(f.materia_id)}>
                   <span className={styles.chipNombre}>{f.materia}</span>
                   <span className={styles.chipDato}>
-                    {formatearFecha(f.fecha)}{f.inscripcion_id ? ", anotado" : ""}
+                    Final: {formatearFecha(f.fecha)}{f.inscripcion_id ? ", ya estás anotado" : ""}
                   </span>
                 </button>
               </li>
@@ -302,9 +302,12 @@ function Acciones({
   if (m.estado === "regular") {
     return (
       <>
+        <p className={styles.detalleDato}>
+          <strong>Final.</strong> Ya cursaste esta materia, lo que falta es rendir el final. Estas fechas son de mesa de final, no de cursada.
+        </p>
         {!m.rendir.permitido && mesas.every((x) => !x.inscripcion_id) && (
           <>
-            <p className={styles.detalleDato}>Todavía no podés rendir el final:</p>
+            <p className={styles.detalleDato}>Todavía no podés anotarte al final:</p>
             <ul className={styles.motivos}>
               {m.rendir.motivos.map((x) => <li key={x}>{x}</li>)}
             </ul>
@@ -322,11 +325,11 @@ function Acciones({
                 </span>
                 {x.inscripcion_id ? (
                   <button className={styles.btnSecundario} disabled={procesando === `f${x.id}`} onClick={() => onBaja(x)}>
-                    Darme de baja
+                    Darme de baja del final
                   </button>
                 ) : (
                   <button className={styles.btnPrimario} disabled={!m.rendir.permitido || procesando === `f${x.id}`} onClick={() => onAnotar(x)}>
-                    {procesando === `f${x.id}` ? "Anotando..." : "Anotarme"}
+                    {procesando === `f${x.id}` ? "Anotando..." : "Anotarme al final"}
                   </button>
                 )}
               </li>
@@ -342,15 +345,15 @@ function Acciones({
       {m.cursar.permitido ? (
         <>
           <p className={styles.detalleDato}>
-            {m.estado === "libre" ? "Quedaste libre. Podés volver a cursarla." : "Cumplís las correlativas. Podés inscribirte a la cursada."}
+            <strong>Cursada.</strong> {m.estado === "libre" ? "Quedaste libre. Podés volver a cursarla." : "Cumplís las correlativas. Podés inscribirte a la cursada."}
           </p>
           <button className={styles.btnPrimario} disabled={procesando === `c${m.id}`} onClick={() => onCursar(m)}>
-            {procesando === `c${m.id}` ? "Inscribiendo..." : m.estado === "libre" ? "Recursar" : "Cursar"}
+            {procesando === `c${m.id}` ? "Inscribiendo..." : m.estado === "libre" ? "Inscribirme para recursar" : "Inscribirme a cursar"}
           </button>
         </>
       ) : (
         <>
-          <p className={styles.detalleDato}>Todavía no podés cursarla:</p>
+          <p className={styles.detalleDato}><strong>Cursada.</strong> Todavía no podés cursarla:</p>
           <ul className={styles.motivos}>
             {m.cursar.motivos.map((x) => <li key={x}>{x}</li>)}
           </ul>
