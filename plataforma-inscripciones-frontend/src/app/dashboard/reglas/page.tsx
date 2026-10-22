@@ -10,7 +10,7 @@ import styles from "./reglas.module.css";
 type Requisito = "regular" | "aprobada";
 type Materia = { id: number; nombre: string; codigo: string | null; carrera_id: number | null; anio: number | null; cuatrimestre: number | null };
 type Correlativa = { id: number; materia_id: number; materia_requerida_id: number; requerida: string; para_cursar: Requisito; para_final: Requisito };
-type Equivalencia = { id: number; materia_id: number; materia: string; carrera_id: number | null; materia_equivalente_id: number; equivalente: string; carrera_equivalente_id: number | null };
+type Equivalencia = { id: number; materia_id: number; materia: string; carrera_id: number | null; materia_equivalente_id: number; equivalente: string; carrera_equivalente_id: number | null; bidireccional: number };
 
 const numero = (m: Materia) => ((m.anio ?? 1) - 1) * 2 + (m.cuatrimestre ?? 1);
 const etiqueta = (m: Materia) => `${m.codigo ? `${m.codigo} ` : ""}${m.nombre}`;
@@ -27,6 +27,7 @@ export default function PaginaReglas() {
   const [nuevas, setNuevas] = useState<Record<number, string>>({});
   const [parA, setParA] = useState("");
   const [parB, setParB] = useState("");
+  const [alReves, setAlReves] = useState(true);
 
   const traer = async () => {
     const [m, r] = await Promise.allSettled([
@@ -90,9 +91,9 @@ export default function PaginaReglas() {
     e.preventDefault();
     const ok = await llamar("/reglas/equivalencias", {
       method: "POST",
-      body: JSON.stringify({ materia_id: Number(parA), materia_equivalente_id: Number(parB) }),
+      body: JSON.stringify({ materia_id: Number(parA), materia_equivalente_id: Number(parB), bidireccional: alReves }),
     }, "Equivalencia agregada");
-    if (ok) { setParA(""); setParB(""); }
+    if (ok) { setParA(""); setParB(""); setAlReves(true); }
   };
 
   const quitarEquivalencia = (e: Equivalencia) => llamar(`/reglas/equivalencias/${e.id}`, { method: "DELETE" }, "Equivalencia quitada");
@@ -143,31 +144,35 @@ export default function PaginaReglas() {
         <>
           <form className={styles.form} onSubmit={agregarEquivalencia}>
             <div>
-              <label className={styles.etiqueta} htmlFor="par-a">Materia</label>
+              <label className={styles.etiqueta} htmlFor="par-a">Si aprobó</label>
               <select id="par-a" className={styles.campo} value={parA} onChange={(e) => setParA(e.target.value)}>
                 <option value="">Elegir...</option>
                 {conCodigo.map((m) => <option key={m.id} value={m.id}>{etiqueta(m)} ({nombreCarrera(m.carrera_id)})</option>)}
               </select>
             </div>
             <div>
-              <label className={styles.etiqueta} htmlFor="par-b">Equivale a</label>
+              <label className={styles.etiqueta} htmlFor="par-b">Se le acredita</label>
               <select id="par-b" className={styles.campo} value={parB} onChange={(e) => setParB(e.target.value)}>
                 <option value="">Elegir...</option>
                 {conCodigo.filter((m) => String(m.id) !== parA).map((m) => <option key={m.id} value={m.id}>{etiqueta(m)} ({nombreCarrera(m.carrera_id)})</option>)}
               </select>
             </div>
+            <label className={styles.checkEq}>
+              <input type="checkbox" checked={alReves} onChange={(e) => setAlReves(e.target.checked)} />
+              También vale al revés
+            </label>
             <button type="submit" className={styles.btnOk} disabled={!parA || !parB}>Agregar equivalencia</button>
           </form>
 
           <section className={styles.grupo}>
-            <h2 className={styles.grupoTitulo}>Aprobar una materia cuenta como aprobar la otra</h2>
+            <h2 className={styles.grupoTitulo}>Aprobar la materia de la izquierda acredita la de la derecha. Con el signo igual también vale al revés.</h2>
             {equivalencias.length === 0 ? (
               <p className={styles.vacio}>Todavía no hay equivalencias cargadas.</p>
             ) : (
               equivalencias.map((e) => (
                 <div key={e.id} className={styles.filaEq}>
                   <span>{e.materia}<span className={styles.carreraEq}>{nombreCarrera(e.carrera_id)}</span></span>
-                  <span className={styles.igual} aria-label="equivale a">=</span>
+                  <span className={styles.igual} aria-label={Number(e.bidireccional) === 0 ? "acredita" : "equivale a"}>{Number(e.bidireccional) === 0 ? "→" : "="}</span>
                   <span>{e.equivalente}<span className={styles.carreraEq}>{nombreCarrera(e.carrera_equivalente_id)}</span></span>
                   <button className={`${styles.btnChico} ${styles.btnPeligro}`} onClick={() => quitarEquivalencia(e)}>Quitar</button>
                 </div>

@@ -18,10 +18,13 @@ function crearMotor({ materias, correlativas, equivalencias = [], inscripciones,
       .filter((c) => c.materia_id === id)
       .map((c) => ({ id: c.materia_requerida_id, para_cursar: c.para_cursar || "regular", para_final: c.para_final || "aprobada" }));
   const requeridas = (id) => requisitos(id).map((r) => r.id);
+  const bidireccional = (e) => e.bidireccional === undefined || e.bidireccional === null || Number(e.bidireccional) !== 0;
   const equivalentes = (id) =>
-    equivalencias.flatMap((e) =>
-      e.materia_id === id ? [e.materia_equivalente_id] : e.materia_equivalente_id === id ? [e.materia_id] : []
-    );
+    equivalencias.flatMap((e) => {
+      if (e.materia_equivalente_id === id) return [e.materia_id];
+      if (e.materia_id === id && bidireccional(e)) return [e.materia_equivalente_id];
+      return [];
+    });
   const inscripto = (id) => inscripciones.some((i) => i.materia_id === id);
   const propios = new Map();
   const cache = new Map();

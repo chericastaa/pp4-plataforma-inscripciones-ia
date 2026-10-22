@@ -39,3 +39,5 @@
   .filaEq { grid-template-columns: 1fr auto; }
   .igual { display: none }
 }
+
+.checkEq { display: flex; align-items: center; gap: 6px; font-size: 13px; padding-bottom: 8px }

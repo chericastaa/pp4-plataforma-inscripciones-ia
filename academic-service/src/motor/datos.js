@@ -9,7 +9,7 @@ async function cargarDatosAlumno(userId) {
   const [materias, correlativas, equivalencias, inscripciones, calificaciones, finales] = await Promise.all([
     q("SELECT id, codigo, nombre, carrera_id, anio, cuatrimestre, profesor_id, dia, hora_inicio, hora_fin FROM materias ORDER BY codigo IS NULL, codigo, nombre"),
     q("SELECT materia_id, materia_requerida_id, para_cursar, para_final FROM correlativas"),
-    q("SELECT materia_id, materia_equivalente_id FROM equivalencias"),
+    q("SELECT materia_id, materia_equivalente_id, bidireccional FROM equivalencias"),
     q("SELECT id, materia_id FROM inscripciones WHERE user_id = ?", [userId]),
     q("SELECT materia_id, parcial1, parcial2, nota FROM calificaciones WHERE user_id = ?", [userId]),
     q(`SELECT inf.id, inf.mesa_id, inf.nota, mf.materia_id, mf.fecha

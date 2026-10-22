@@ -72,6 +72,17 @@ t("equivalencia funciona en los dos sentidos", () => {
   assert.strictEqual(m.estado(10).estado, "aprobada");
 });
 
+t("equivalencia de un solo sentido: sirve del origen al destino", () => {
+  const m = crearMotor(base({ equivalencias: [{ materia_id: 10, materia_equivalente_id: 1, bidireccional: 0 }], finales: [{ materia_id: 10, nota: 8 }] }));
+  assert.strictEqual(m.estado(1).estado, "aprobada");
+  assert.strictEqual(m.estado(1).via, "equivalencia");
+});
+
+t("equivalencia de un solo sentido: no vale al revés", () => {
+  const m = crearMotor(base({ equivalencias: [{ materia_id: 10, materia_equivalente_id: 1, bidireccional: 0 }], finales: [{ materia_id: 1, nota: 8 }] }));
+  assert.strictEqual(m.estado(10).estado, "no_cursada");
+});
+
 t("equivalencia circular no se cuelga", () => {
   const m = crearMotor(base({ equivalencias: [{ materia_id: 1, materia_equivalente_id: 10 }, { materia_id: 10, materia_equivalente_id: 1 }] }));
   assert.strictEqual(m.estado(1).estado, "no_cursada");

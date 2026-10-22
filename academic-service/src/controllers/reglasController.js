@@ -12,7 +12,7 @@ const SQL_CORRELATIVA = `
   JOIN materias r ON r.id = c.materia_requerida_id`;
 
 const SQL_EQUIVALENCIA = `
-  SELECT e.id, e.materia_id, a.nombre AS materia, a.codigo, a.carrera_id,
+  SELECT e.id, e.materia_id, a.nombre AS materia, a.codigo, a.carrera_id, e.bidireccional,
          e.materia_equivalente_id, b.nombre AS equivalente, b.codigo AS codigo_equivalente, b.carrera_id AS carrera_equivalente_id
   FROM equivalencias e
   JOIN materias a ON a.id = e.materia_id
@@ -119,6 +119,7 @@ const crearEquivalencia = async (req, res) => {
   try {
     const a = entero(req.body.materia_id);
     const b = entero(req.body.materia_equivalente_id);
+    const bidireccional = req.body.bidireccional === false || req.body.bidireccional === 0 ? 0 : 1;
 
     if (!a || !b) return res.status(400).json({ message: "Elegí las dos materias" });
     if (a === b) return res.status(400).json({ message: "Elegí dos materias distintas" });
@@ -132,7 +133,7 @@ const crearEquivalencia = async (req, res) => {
     );
     if (repetida.length) return res.status(409).json({ message: "Esas materias ya son equivalentes" });
 
-    const r = await db.promise().query("INSERT INTO equivalencias (materia_id, materia_equivalente_id) VALUES (?, ?)", [a, b]);
+    const r = await db.promise().query("INSERT INTO equivalencias (materia_id, materia_equivalente_id, bidireccional) VALUES (?, ?, ?)", [a, b, bidireccional]);
     const [fila] = await q(`${SQL_EQUIVALENCIA} WHERE e.id = ?`, [r[0].insertId]);
     res.status(201).json(fila);
   } catch (err) {
