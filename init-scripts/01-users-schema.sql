@@ -11,6 +11,5 @@ CREATE TABLE `usuarios` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Usuario admin creado automáticamente (email: admin@test.com / contraseña: admin123)
 INSERT INTO `usuarios` (`nombre`, `email`, `password`, `rol`, `dni`)
 VALUES ('Admin', 'admin@test.com', '$2b$10$shmBfa2T2yLhQaWH5niXaeWujkOx2LC9j8qshdXHMEsROKYjguqKS', 'admin', NULL);

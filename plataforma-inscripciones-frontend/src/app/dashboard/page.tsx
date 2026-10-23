@@ -141,7 +141,7 @@ function VistaProfesor() {
           setAlumnosPorMateria(Object.fromEntries(conteos));
         }
       } catch {
-        /* servicio no disponible */
+        setAlumnosPorMateria({});
       } finally {
         setLoading(false);
       }

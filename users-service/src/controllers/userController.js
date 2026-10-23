@@ -4,10 +4,8 @@ const jwt = require("jsonwebtoken");
 
 const SECRET = process.env.JWT_SECRET || "clave_secreta_temporal";
 
-// REGISTER
 const register = (req, res) => {
   const { nombre, dni, email, password, rol, codigoProfesor } = req.body;
-  console.log("Register - body recibido:", req.body);
 
   if (!rol) return res.status(400).json({ message: "El rol es obligatorio" });
   if (rol === "admin") return res.status(403).json({ message: "No permitido crear admin" });
@@ -58,10 +56,8 @@ const register = (req, res) => {
   });
 };
 
-// LOGIN
 const login = (req, res) => {
   const { email, password } = req.body;
-  console.log("Login - email:", email);
 
   db.query("SELECT * FROM usuarios WHERE email = ?", [email], async (err, results) => {
     if (err) {
@@ -71,11 +67,9 @@ const login = (req, res) => {
     if (results.length === 0) return res.status(401).json({ message: "Credenciales incorrectas" });
 
     const usuario = results[0];
-    console.log("Usuario encontrado:", usuario.email, "| hash:", usuario.password?.substring(0, 10));
 
     try {
       const match = await bcrypt.compare(password, usuario.password);
-      console.log("¿Contraseña coincide?", match);
 
       if (!match) return res.status(401).json({ message: "Credenciales incorrectas" });
 
@@ -101,7 +95,6 @@ const login = (req, res) => {
   });
 };
 
-// GET BY ID
 const getUserById = (req, res) => {
   const { id } = req.params;
   db.query("SELECT id, nombre, email, rol, carrera_id FROM usuarios WHERE id = ?", [id], (err, results) => {
@@ -114,7 +107,6 @@ const getUserById = (req, res) => {
   });
 };
 
-// GET ALL
 const getUsuarios = (req, res) => {
   db.query("SELECT id, nombre, email, rol, carrera_id FROM usuarios", (err, results) => {
     if (err){
@@ -125,7 +117,6 @@ const getUsuarios = (req, res) => {
   });
 };
 
-// ELIMINAR
 const eliminarUsuario = (req, res) => {
   const { id } = req.params;
   db.query("SELECT * FROM usuarios WHERE id = ?", [id], (err, results) => {
@@ -150,7 +141,6 @@ const eliminarUsuario = (req, res) => {
   });
 };
 
-// EDITAR (solo admin)
 const editarUsuario = (req, res) => {
   if (req.user?.rol !== "admin") return res.status(403).json({ message: "Solo un administrador puede editar usuarios" });
   const { id } = req.params;

@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
             <p style="font-size:15px;color:#374151;line-height:1.6;">
               Tu cuenta fue creada con éxito. Ya podés ingresar a la plataforma e inscribirte en tus materias.
             </p>
-            <p style="font-size:22px;text-align:center;margin:28px 0;">¡Ahora a aprender! 🎓</p>
+            <p style="font-size:22px;text-align:center;margin:28px 0;">¡Ahora a aprender!</p>
             <p style="font-size:13px;color:#9ca3af;margin-top:24px;">
               Si no fuiste vos quien creó esta cuenta, ignorá este mensaje.
             </p>

@@ -22,10 +22,6 @@ async function axiosWithAuth(
   });
 }
 
-/* =========================
-   🔐 AUTH (USERS SERVICE)
-========================= */
-
 export async function register(body: {
   dni: string;
   email: string;
@@ -89,10 +85,6 @@ export async function logoutServer() {
 
   return { ok: true };
 }
-
-/* =========================
-   📚 MATERIAS
-========================= */
 
 export async function obtenerMaterias() {
   try {
@@ -165,10 +157,6 @@ export async function eliminarMateria(id: number) {
   }
 }
 
-/* =========================
-   👨‍🎓 ALUMNOS
-========================= */
-
 export async function obtenerAlumnos() {
   try {
     const {
@@ -198,10 +186,6 @@ export async function editeEmail(body: { dni: string; email: string }) {
     };
   }
 }
-
-/* =========================
-   📝 INSCRIPCIONES
-========================= */
 
 export async function obtenerInscripcionAlumno(dni: string) {
   try {

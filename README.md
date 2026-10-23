@@ -1,6 +1,6 @@
 # Plataforma de Inscripciones
 
-Sistema web para la gestión de inscripciones académicas, compuesto por un frontend y dos microservicios backend independientes, cada uno con su propia responsabilidad.
+Sistema web para la gestión de inscripciones académicas, compuesto por un frontend y tres microservicios backend independientes, cada uno con su propia responsabilidad.
 
 ## ¿De qué se trata el proyecto?
 
@@ -39,9 +39,9 @@ El proyecto sigue una **arquitectura de microservicios**, con tres capas princip
               └───────────────────┘
 ```
 
-Todo el sistema se levanta junto mediante **Docker Compose**, que orquesta los 4 contenedores (frontend, users-service, academic-service, mysql) y se asegura de que arranquen en el orden correcto (por ejemplo, los backends esperan a que MySQL esté lista antes de conectarse).
+Todo el sistema se levanta junto mediante **Docker Compose**, que orquesta los contenedores (frontend, users-service, academic-service, ai-service, mysql) y se asegura de que arranquen en el orden correcto (por ejemplo, los backends esperan a que MySQL esté lista antes de conectarse).
 
-## Las tres capas
+## Componentes
 
 ### 1. Frontend (`plataforma-inscripciones-frontend/`)
 
@@ -68,12 +68,29 @@ Microservicio encargado de la lógica académica del sistema:
 - Se comunica con `users-service` **vía HTTP** (usando `axios`, a través de la variable `USERS_SERVICE_URL`) para validar datos del usuario antes de procesar una inscripción.
 - Valida los JWT emitidos por `users-service` de forma local, usando un `JWT_SECRET` compartido entre ambos servicios (sin necesidad de consultar la base de usuarios para eso).
 
+#### Motor de reglas
+
+Dentro de `academic-service`, el motor de reglas (`src/motor/`) decide el estado de cada materia para un alumno (no cursada, cursando, regular, aprobada o libre) y si puede cursarla o rendir su final:
+
+- Regular con 4 o más en los parciales, y aprobada por promoción con 7 o más y correlativas aprobadas. El final se aprueba con 4 o más.
+- Cada correlativa define qué hace falta para cursar y qué para rendir el final (regular o aprobada).
+- Las equivalencias entre carreras permiten que una materia aprobada acredite otra, en uno o en ambos sentidos.
+- Las correlativas y las equivalencias son datos en tablas, editables por el administrador desde la pantalla Reglas (`/reglas`, solo rol admin).
+
+### 4. AI Service (`ai-service/`)
+
+Microservicio del asistente virtual:
+- Recibe las consultas del chat y se las pasa a un modelo de lenguaje compatible con la API de OpenAI.
+- Le ofrece herramientas al modelo (consultar el plan, saber si se puede cursar o rendir, ver mesas de final, inscribir a cursar y anotarse a un final), que llaman a `academic-service` con el token del usuario.
+- Las acciones de inscripción piden confirmación explícita y pasan por el motor de reglas.
+- Variables: `AI_BASE_URL`, `AI_MODEL`, `AI_API_KEY`, `ACADEMIC_SERVICE_URL`, `USERS_SERVICE_URL` y `JWT_SECRET`.
+
 ### Base de datos (MySQL)
 
 Una única instancia de MySQL sirve a ambos backends, pero cada uno tiene su **propia base de datos separada**, sin tablas compartidas:
 
 - `users_db` → usada exclusivamente por `users-service` (tabla `usuarios`).
-- `academic_db` → usada exclusivamente por `academic-service` (tablas `materias`, `correlativas`, `inscripciones`, `calificaciones`).
+- `academic_db` → usada exclusivamente por `academic-service` (tablas `materias`, `correlativas`, `equivalencias`, `inscripciones`, `calificaciones`, `mesas_finales` e `inscripciones_finales`).
 
 Los dos servicios no acceden a la base del otro por SQL. Cuando `academic-service` necesita datos de un usuario, lo hace por HTTP contra `users-service`, no consultando su base directamente.
 
@@ -94,13 +111,14 @@ Requiere tener **Docker Desktop** instalado y corriendo. Desde la raíz del proy
 docker compose up -d --build
 ```
 
-Esto levanta los 4 servicios juntos:
+Esto levanta todos los servicios juntos:
 
 | Servicio | Puerto | URL local |
 |---|---|---|
 | Frontend | 3000 | http://localhost:3000 |
 | Users Service | 3001 | http://localhost:3001 |
 | Academic Service | 4000 | http://localhost:4000 |
+| AI Service | 5000 | http://localhost:5000 |
 | MySQL | 3306 | (uso interno, no se accede desde el navegador) |
 
 ## Documentación por servicio

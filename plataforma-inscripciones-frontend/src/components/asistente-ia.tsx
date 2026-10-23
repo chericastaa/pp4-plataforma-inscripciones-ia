@@ -65,7 +65,7 @@ export const AsistenteIA = () => {
           <div className={styles.mensajes}>
             {mensajes.length === 0 && (
               <div className={styles.vacio}>
-                Hola{user?.nombre ? `, ${user.nombre}` : ""} 👋 Preguntame sobre materias, horarios, profesores, correlativas o tus inscripciones.
+                Hola{user?.nombre ? `, ${user.nombre}` : ""}. Preguntame sobre materias, horarios, profesores, correlativas o tus inscripciones.
               </div>
             )}
             {mensajes.map((m, i) => (
@@ -93,7 +93,11 @@ export const AsistenteIA = () => {
       )}
 
       <button className={styles.boton} onClick={() => setAbierto(!abierto)} aria-label="Asistente virtual">
-        {abierto ? "×" : "💬"}
+        {abierto ? "×" : (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.5A8 8 0 1 1 21 12z" />
+          </svg>
+        )}
       </button>
     </>
   );

@@ -263,7 +263,6 @@
 
 .btnDelete[disabled] { opacity: 0.5; }
 
-/* input con margen inferior para el form de tareas */
 .inputMb {
     flex: 1;
     padding: 9px 12px;
@@ -277,7 +276,6 @@
 }
 .inputMb:focus { border-color: #2456C5; }
 
-/* tabs */
 .tabs {
     display: flex;
     gap: 6px;
@@ -310,7 +308,6 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-/* label fecha */
 .dateLabel {
     font-size: 13px;
     color: #374151;
@@ -319,7 +316,6 @@
     font-family: inherit;
 }
 
-/* tarjetas de tarea */
 .cardTarea { border-left-color: #f59e0b; }
 .cardVencida { border-left-color: #ef4444; background: #fff5f5; }
 
@@ -410,7 +406,6 @@
     color: #9ca3af;
 }
 
-/* tabla de notas */
 .tablaNotas {
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -531,7 +526,6 @@
 .btnGuardarNota:hover { background: #15803d; }
 .btnGuardarNota[disabled] { opacity: 0.5; }
 
-/* caja de nota del alumno */
 .miNotaBox {
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -563,7 +557,6 @@
 }
 
 
-/* notas por alumno */
 .notas { display: flex; flex-direction: column; gap: 12px; }
 .alumnoCard { background: #fff; border: 1px solid #dde2ea; border-radius: 12px; padding: 14px 16px; }
 .alumnoTop { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }

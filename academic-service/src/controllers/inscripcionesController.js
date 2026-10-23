@@ -3,14 +3,12 @@ const axios = require("axios");
 const { crearMotor } = require("../motor/reglas");
 const { cargarDatosAlumno } = require("../motor/datos");
 
-// Si no existe en el entorno, usa localhost como fallback
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3001';
 
 const inscribir = async (req, res) => {
   const { user_id, materia_id } = req.body;
 
   try {
-    // AHORA USA LA VARIABLE DE ARRIBA:
     const userResponse = await axios.get(
       `${USERS_SERVICE_URL}/usuarios/${user_id}`,
       { headers: { Authorization: req.headers.authorization } }
