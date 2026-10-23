@@ -12,7 +12,7 @@ El proyecto sigue una **arquitectura de microservicios**, con tres capas princip
 
 ```
 ┌─────────────────────┐
-│      Frontend         │  (Next.js) — puerto 3000
+│      Frontend         │  (Next.js) - puerto 3000
 │  Interfaz de usuario  │
 └──────────┬───────────┘
            │ HTTP
@@ -50,7 +50,7 @@ Es la interfaz con la que interactúa el usuario final. Construida con **Next.js
 - Consumir las APIs de `users-service` y `academic-service` mediante peticiones HTTP (Axios).
 - Manejar el estado de la aplicación en el cliente (Zustand) y la validación de formularios (React Hook Form + Zod).
 
-No accede directamente a la base de datos — toda la información pasa por los backends.
+No accede directamente a la base de datos - toda la información pasa por los backends.
 
 ### 2. Users Service (`users-service/`)
 
@@ -94,7 +94,7 @@ Una única instancia de MySQL sirve a ambos backends, pero cada uno tiene su **p
 
 Los dos servicios no acceden a la base del otro por SQL. Cuando `academic-service` necesita datos de un usuario, lo hace por HTTP contra `users-service`, no consultando su base directamente.
 
-Las bases y sus tablas se crean automáticamente la primera vez que el contenedor de MySQL arranca con el volumen vacío, mediante los scripts SQL en `init-scripts/` (montados en `/docker-entrypoint-initdb.d`). Los datos persisten entre reinicios gracias al volumen de Docker `mysql_data` — pero si se borra ese volumen (`docker-compose down -v`), las bases se recrean desde cero a partir de esos scripts.
+Las bases y sus tablas se crean automáticamente la primera vez que el contenedor de MySQL arranca con el volumen vacío, mediante los scripts SQL en `init-scripts/` (montados en `/docker-entrypoint-initdb.d`). Los datos persisten entre reinicios gracias al volumen de Docker `mysql_data` - pero si se borra ese volumen (`docker-compose down -v`), las bases se recrean desde cero a partir de esos scripts.
 
 ## Por qué esta arquitectura
 

@@ -1,4 +1,4 @@
-# Plataforma de Inscripciones — Frontend
+# Plataforma de Inscripciones - Frontend
 
 Cliente web de la plataforma de inscripciones, construido con Next.js. Consume los servicios `users-service` y `academic-service`.
 
