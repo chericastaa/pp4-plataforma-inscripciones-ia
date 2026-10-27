@@ -125,4 +125,41 @@ const getInscriptosMesa = async (req, res) => {
   }
 };
 
-module.exports = { getMesas, inscribirFinal, bajaFinal, cargarNotaFinal, getInscriptosMesa };
+const crearMesa = async (req, res) => {
+  const materiaId = Number(req.body.materia_id);
+  const { fecha, hora } = req.body;
+
+  if (!materiaId || !/^\d{4}-\d{2}-\d{2}$/.test(fecha || "")) {
+    return res.status(400).json({ message: "Falta la materia o la fecha" });
+  }
+
+  try {
+    const [materia] = await q("SELECT id FROM materias WHERE id = ?", [materiaId]);
+    if (!materia) return res.status(404).json({ message: "La materia no existe" });
+
+    const [repetida] = await q("SELECT id FROM mesas_finales WHERE materia_id = ? AND fecha = ?", [materiaId, fecha]);
+    if (repetida) return res.status(400).json({ message: "Ya hay una mesa de esa materia ese día" });
+
+    const r = await q("INSERT INTO mesas_finales (materia_id, fecha, hora) VALUES (?, ?, ?)", [materiaId, fecha, hora || "18:00"]);
+    res.status(201).json({ id: r.insertId, materia_id: materiaId, fecha, hora: hora || "18:00" });
+  } catch (err) {
+    console.error("Error en finales/crear mesa:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+const borrarMesa = async (req, res) => {
+  try {
+    const [cuenta] = await q("SELECT COUNT(*) AS n FROM inscripciones_finales WHERE mesa_id = ?", [req.params.id]);
+    if (cuenta.n > 0) return res.status(400).json({ message: "La mesa tiene alumnos anotados" });
+
+    const r = await q("DELETE FROM mesas_finales WHERE id = ?", [req.params.id]);
+    if (r.affectedRows === 0) return res.status(404).json({ message: "La mesa no existe" });
+    res.json({ id: Number(req.params.id), deleted: true });
+  } catch (err) {
+    console.error("Error en finales/borrar mesa:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
+module.exports = { getMesas, inscribirFinal, bajaFinal, cargarNotaFinal, getInscriptosMesa, crearMesa, borrarMesa };

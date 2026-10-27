@@ -10,7 +10,7 @@ const cumple = (estado, exigido) =>
 const num = (v) => (v === null || v === undefined ? null : Number(v));
 const hora = (h) => String(h).slice(0, 5);
 
-function crearMotor({ materias, correlativas, equivalencias = [], inscripciones, calificaciones, finales }) {
+function crearMotor({ materias, correlativas, equivalencias = [], inscripciones, calificaciones, finales, periodo = null }) {
   const porId = new Map(materias.map((m) => [m.id, m]));
   const nombre = (id) => porId.get(id)?.nombre ?? `materia ${id}`;
   const requisitos = (id) =>
@@ -97,6 +97,10 @@ function crearMotor({ materias, correlativas, equivalencias = [], inscripciones,
     if (actual === "aprobada") motivos.push(`Ya aprobaste ${m.nombre}${porEquivalencia}`);
     if (actual === "regular") motivos.push(`Ya tenés la cursada regular de ${m.nombre}${porEquivalencia}, te falta rendir el final`);
     if (actual === "cursando") motivos.push(`Ya estás cursando ${m.nombre}`);
+
+    if (periodo && m.cuatrimestre && m.cuatrimestre !== periodo.cuatrimestre && (actual === "no_cursada" || actual === "libre")) {
+      motivos.push(`${m.nombre} se cursa en el ${m.cuatrimestre === 1 ? "1er" : "2do"} cuatrimestre y ahora está abierto el ${periodo.nombre}`);
+    }
 
     for (const r of requisitos(id)) {
       if (!cumple(estado(r.id).estado, r.para_cursar)) {

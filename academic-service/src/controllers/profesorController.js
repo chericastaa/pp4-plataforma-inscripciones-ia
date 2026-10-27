@@ -1,5 +1,6 @@
 const db = require("../db/db");
 const axios = require("axios");
+const { ultima } = require("../motor/periodos");
 
 const getMateriasProfesor = (req, res) => {
   const profesor_id = req.params.id;
@@ -13,7 +14,7 @@ const getMateriasProfesor = (req, res) => {
 const getAlumnosMateria = (req, res) => {
   const materia_id = req.params.id;
   db.query(
-    "SELECT user_id FROM inscripciones WHERE materia_id = ?",
+    `SELECT i.user_id FROM inscripciones i WHERE i.materia_id = ? AND i.id = ${ultima}`,
     [materia_id],
     async (err, result) => {
       if (err) return res.status(500).json(err);

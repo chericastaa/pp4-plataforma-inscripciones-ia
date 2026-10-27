@@ -51,3 +51,8 @@
   .acciones { justify-content: flex-start }
   .buscar { max-width: none; flex-basis: 100% }
 }
+.btnAuto { font: inherit; font-size: 13px; font-weight: 600; background: #fff; color: var(--primario); border: 1px solid var(--primario); border-radius: 10px; padding: 8px 14px; cursor: pointer }
+.btnAuto:hover { background: #eef3ff }
+.btnAuto[disabled] { opacity: .6; cursor: default }
+.linkHora { font: inherit; font-size: 12px; color: var(--primario); background: none; border: none; padding: 0 0 0 6px; cursor: pointer; text-decoration: underline }
+.editHora { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 4px }

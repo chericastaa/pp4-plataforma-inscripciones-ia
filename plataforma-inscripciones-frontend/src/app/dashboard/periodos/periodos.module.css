@@ -1,0 +1,21 @@
+.pagina { padding: 1.5rem; max-width: 900px }
+.titulo { font-size: 22px; font-weight: 700; color: var(--texto); letter-spacing: -0.01em; margin: 0 }
+.sub { font-size: 14px; color: var(--texto-suave); margin: 4px 0 1.25rem; max-width: 68ch; line-height: 1.5 }
+.bloque { background: #fff; border: 1px solid var(--linea); border-radius: 12px; overflow: hidden; margin-bottom: 1.25rem }
+.bloqueTitulo { margin: 0; padding: 11px 1.25rem; background: #f7f8fa; border-bottom: 1px solid var(--linea); font-size: 13px; font-weight: 700; color: var(--texto) }
+.fila { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 150px; gap: 12px; align-items: center; padding: 11px 1.25rem; border-bottom: 1px solid #eef0f4; font-size: 13px }
+.nombre { font-weight: 600; color: var(--texto) }
+.dato { color: var(--texto-suave) }
+.fila > :last-child { justify-self: end }
+.abierto { font-size: 12px; font-weight: 600; color: #16794a; background: #e3f6ec; padding: 3px 10px; border-radius: 99px }
+.form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; padding: 1rem 1.25rem }
+.etiqueta { display: block; font-size: 12px; color: var(--texto-suave); margin-bottom: 4px }
+.campo { font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid var(--linea); border-radius: 8px; background: #fff; color: var(--texto); max-width: 100% }
+.campo:focus-visible, .btnChico:focus-visible, .btnOk:focus-visible { outline: 3px solid var(--primario); outline-offset: 2px }
+.ancho { width: 340px }
+.btnOk { font: inherit; font-size: 13px; font-weight: 600; background: #16794a; color: #fff; border: none; border-radius: 8px; padding: 9px 16px; cursor: pointer }
+.btnChico { font: inherit; font-size: 12px; padding: 5px 11px; border-radius: 8px; border: 1px solid var(--linea); background: #fff; color: var(--texto); cursor: pointer }
+.btnChico:hover { background: #f2f4f7 }
+.btnOk:disabled, .btnChico:disabled { opacity: .5; cursor: default }
+.vacio { padding: 1rem 1.25rem; margin: 0; color: var(--texto-suave); font-size: 14px }
+@media (max-width: 640px) { .fila { grid-template-columns: 1fr } .ancho { width: 100% } }

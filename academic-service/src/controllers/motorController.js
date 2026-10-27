@@ -1,5 +1,5 @@
 const db = require("../db/db");
-const { crearMotor } = require("../motor/reglas");
+const { crearMotor, NOTA_REGULAR } = require("../motor/reglas");
 const { cargarDatosAlumno, obtenerUsuario } = require("../motor/datos");
 
 const alumnoObjetivo = (req) =>
@@ -13,6 +13,14 @@ async function prepararMotor(req) {
   ]);
   return { userId, carreraId: usuario?.carrera_id ?? null, datos, motor: crearMotor(datos) };
 }
+
+const resultadoCursada = (cal) => {
+  const p1 = cal?.parcial1 == null ? null : Number(cal.parcial1);
+  const p2 = cal?.parcial2 == null ? null : Number(cal.parcial2);
+  if ((p1 !== null && p1 < NOTA_REGULAR) || (p2 !== null && p2 < NOTA_REGULAR)) return { resultado: "libre", nota: null };
+  if (p1 !== null && p2 !== null) return { resultado: "regular", nota: (p1 + p2) / 2 };
+  return { resultado: "sin_nota", nota: null };
+};
 
 const getPlan = async (req, res) => {
   try {
@@ -31,6 +39,10 @@ const getPlan = async (req, res) => {
           dia: m.dia,
           hora_inicio: m.hora_inicio,
           hora_fin: m.hora_fin,
+          cursada: datos.ultimas.get(m.id)?.periodo ?? null,
+          historial: datos.historial
+            .filter((h) => h.materia_id === m.id)
+            .map((h) => ({ periodo: h.periodo, ...resultadoCursada(h.cal) })),
           estado: e.estado,
           nota: e.nota,
           via: e.via,
@@ -51,7 +63,7 @@ const getPlan = async (req, res) => {
       ? await db.promise().query("SELECT nombre FROM carreras WHERE id = ?", [carreraId]).then(([rows]) => rows)
       : [null];
 
-    res.json({ user_id: userId, carrera_id: carreraId, carrera: carrera?.nombre ?? null, materias });
+    res.json({ user_id: userId, carrera_id: carreraId, carrera: carrera?.nombre ?? null, periodo: datos.periodo?.nombre ?? null, materias });
   } catch (err) {
     console.error("Error en motor/plan:", err);
     res.status(500).json({ message: "Error interno del servidor" });

@@ -149,6 +149,7 @@ function crearHerramientas(user, token, contexto = { mensaje: "", historial: [] 
               inscripto: false,
               requiere_confirmacion: true,
               materia: m.nombre,
+              tarjeta: { tipo: "cursar", materia: m.nombre },
               instruccion: `Todavía no se inscribió. Preguntale al alumno si confirma la inscripción a CURSAR ${m.nombre} y esperá su respuesta.`,
             };
           }
@@ -185,6 +186,7 @@ function crearHerramientas(user, token, contexto = { mensaje: "", historial: [] 
               anotado: false,
               requiere_confirmacion: true,
               ...detalle,
+              tarjeta: { tipo: "final", ...detalle },
               instruccion: `Todavía no se anotó. Preguntale al alumno si confirma anotarse al FINAL de ${m.nombre} del ${detalle.fecha} y esperá su respuesta.`,
             };
           }

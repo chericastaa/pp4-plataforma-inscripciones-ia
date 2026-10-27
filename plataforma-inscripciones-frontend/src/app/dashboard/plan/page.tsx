@@ -22,6 +22,7 @@ export default function PlanDeEstudios() {
   const [materias, setMaterias] = useState<MateriaPlan[]>([]);
   const [mesas, setMesas] = useState<Mesa[]>([]);
   const [carrera, setCarrera] = useState("");
+  const [periodo, setPeriodo] = useState("");
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(false);
   const [seleccionada, setSeleccionada] = useState<number | null>(null);
@@ -32,6 +33,7 @@ export default function PlanDeEstudios() {
     setMaterias(d.materias);
     setMesas(d.mesas);
     setCarrera(d.carrera);
+    setPeriodo(d.periodo);
     setError(d.error);
     setCargando(false);
   };
@@ -46,6 +48,12 @@ export default function PlanDeEstudios() {
       if (id) setSeleccionada(id);
     });
   }, [user?.id]);
+
+  useEffect(() => {
+    const refrescar = () => { cargarPlan().then(aplicar); };
+    window.addEventListener("plan:actualizar", refrescar);
+    return () => window.removeEventListener("plan:actualizar", refrescar);
+  }, []);
 
   const accion = async (clave: string, url: string, opciones: RequestInit, exito: string) => {
     setProcesando(clave);
@@ -121,6 +129,7 @@ export default function PlanDeEstudios() {
           {carrera ? `${carrera}. ` : ""}
           {aprobadas} de {materias.length} materias aprobadas. Tocá una materia para ver sus correlativas y qué podés hacer con ella.
         </p>
+        {periodo && <p className={styles.subtitulo}>Inscripción a cursar abierta: {periodo}.</p>}
       </header>
 
       {finalesAbiertos.length > 0 && (
@@ -226,6 +235,16 @@ export default function PlanDeEstudios() {
                 </span>
                 {actual.nota !== null && <span className={styles.detalleNota}>Nota {nota1(Number(actual.nota))}</span>}
               </div>
+
+              {(actual.cursada || actual.historial.length > 0) && (
+                <>
+                  <h3 className={styles.detalleSub}>Cursadas</h3>
+                  {actual.historial.map((h, i) => (
+                    <p key={i} className={styles.detalleDato}>{h.periodo}: {h.resultado === "libre" ? "quedaste libre" : h.resultado === "regular" ? `regularizaste, promedio ${nota1(Number(h.nota))}` : "sin notas"}</p>
+                  ))}
+                  {actual.cursada && <p className={styles.detalleDato}>{actual.cursada}: {ETIQUETAS[actual.estado].toLowerCase()}{actual.nota !== null && actual.via !== "final" ? `, promedio ${nota1(Number(actual.nota))}` : ""}</p>}
+                </>
+              )}
 
               <h3 className={styles.detalleSub}>Correlativas</h3>
               {actual.correlativas.length === 0 ? (

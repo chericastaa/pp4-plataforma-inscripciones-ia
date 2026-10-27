@@ -76,6 +76,9 @@ Dentro de `academic-service`, el motor de reglas (`src/motor/`) decide el estado
 - Cada correlativa define qué hace falta para cursar y qué para rendir el final (regular o aprobada).
 - Las equivalencias entre carreras permiten que una materia aprobada acredite otra, en uno o en ambos sentidos.
 - Las correlativas y las equivalencias son datos en tablas, editables por el administrador desde la pantalla Reglas (`/reglas`, solo rol admin).
+- La cursada se inscribe en un período (por ejemplo, 2do cuatrimestre 2026). Cada materia solo se cursa en el cuatrimestre que le toca, y al recursar se guarda la cursada anterior como historial.
+- Cada materia puede tener varias mesas de final. El admin las crea y las abre desde Períodos y mesas.
+- Un profesor no puede tener dos materias en el mismo día y horario del mismo cuatrimestre. El admin puede asignar profesores a mano o con el botón de asignar solo.
 
 ### 4. AI Service (`ai-service/`)
 

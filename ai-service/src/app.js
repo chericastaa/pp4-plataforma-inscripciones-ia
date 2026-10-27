@@ -63,6 +63,13 @@ async function llamarModelo(mensajes, tools) {
   throw error;
 }
 
+const normalizar = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+const preguntaDe = (t) =>
+  t.tipo === "final"
+    ? `¿Confirmás anotarte al final de ${t.materia} del ${t.fecha}?`
+    : `¿Confirmás inscribirte a cursar ${t.materia}?`;
+
 app.post("/chat", verificarToken, async (req, res) => {
   const { mensaje, historial = [] } = req.body;
 
@@ -90,12 +97,22 @@ Si saludan o preguntan algo ajeno a la plataforma, respondé sin herramientas.`;
     { role: "user", content: mensaje },
   ];
 
+  let tarjeta = null;
+  let actualizo = false;
+
   try {
     for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
       const msg = await llamarModelo(mensajes, definiciones);
 
       if (!msg.tool_calls?.length) {
-        return res.json({ respuesta: msg.content || "No entendí la pregunta, ¿me la repetís?" });
+        let respuesta = msg.content || "No entendí la pregunta, ¿me la repetís?";
+        if (tarjeta) {
+          const pregunta = preguntaDe(tarjeta);
+          if (!respuesta.includes("?") || !normalizar(respuesta).includes(normalizar(tarjeta.materia))) {
+            respuesta = `${respuesta}\n\n${pregunta}`;
+          }
+        }
+        return res.json({ respuesta, tarjeta, actualizo });
       }
 
       mensajes.push({ role: "assistant", content: msg.content || "", tool_calls: msg.tool_calls });
@@ -106,6 +123,8 @@ Si saludan o preguntan algo ajeno a la plataforma, respondé sin herramientas.`;
           try { args = JSON.parse(args || "{}"); } catch { args = {}; }
         }
         const resultado = await ejecutar(llamada.function.name, args);
+        if (resultado?.tarjeta) tarjeta = resultado.tarjeta;
+        if (resultado?.inscripto || resultado?.anotado) { tarjeta = null; actualizo = true; }
         mensajes.push({ role: "tool", tool_call_id: llamada.id, content: JSON.stringify(resultado) });
       }
     }

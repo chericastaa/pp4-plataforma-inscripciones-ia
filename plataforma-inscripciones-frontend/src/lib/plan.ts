@@ -17,6 +17,8 @@ export type MateriaPlan = {
   nota: number | null;
   via: "final" | "promocion" | "equivalencia" | null;
   equivalente: string | null;
+  cursada: string | null;
+  historial: { periodo: string | null; resultado: "libre" | "regular" | "sin_nota"; nota: number | null }[];
   correlativas: { id: number; nombre: string; estado: Estado; para_cursar: "regular" | "aprobada"; para_final: "regular" | "aprobada" }[];
   cursar: Resultado;
   rendir: Resultado;
@@ -62,7 +64,7 @@ export const formatearFecha = (fecha: string) =>
 
 export const nota1 = (n: number) => Number(n).toLocaleString("es-AR", { maximumFractionDigits: 1 });
 
-export async function cargarPlan(): Promise<{ carrera: string; materias: MateriaPlan[]; mesas: Mesa[]; error: boolean }> {
+export async function cargarPlan(): Promise<{ carrera: string; periodo: string; materias: MateriaPlan[]; mesas: Mesa[]; error: boolean }> {
   const [planRes, mesasRes] = await Promise.allSettled([
     fetch(`${ACADEMIC_API}/motor/plan`, { headers: authHeaders() }).then((r) => r.json()),
     fetch(`${ACADEMIC_API}/finales/mesas`, { headers: authHeaders() }).then((r) => r.json()),
@@ -72,7 +74,7 @@ export async function cargarPlan(): Promise<{ carrera: string; materias: Materia
   const materias: MateriaPlan[] = Array.isArray(plan?.materias) ? plan.materias : [];
   const mesas: Mesa[] = mesasRes.status === "fulfilled" && Array.isArray(mesasRes.value) ? mesasRes.value : [];
 
-  return { carrera: plan?.carrera || "", materias, mesas, error: materias.length === 0 };
+  return { carrera: plan?.carrera || "", periodo: plan?.periodo || "", materias, mesas, error: materias.length === 0 };
 }
 
 export const CARRERAS: Record<number, string> = { 1: "Desarrollo de Software", 2: "Análisis de Sistemas" };

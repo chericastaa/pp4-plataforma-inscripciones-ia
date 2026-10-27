@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useAppStore } from "@/src/store";
 import { useRouter } from "next/navigation";
 import { authHeaders, USERS_API, ACADEMIC_API } from "@/src/lib/api";
-import { nombreCarrera, hhmm } from "@/src/lib/plan";
+import { nombreCarrera, hhmm, DIAS } from "@/src/lib/plan";
 import styles from "./materias.module.css";
 
 type Usuario = { id: number; nombre: string; rol?: string };
@@ -29,6 +29,9 @@ export default function PageMaterias() {
   const [carrera, setCarrera] = useState<number>(0);
   const [soloSinProfe, setSoloSinProfe] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [auto, setAuto] = useState(false);
+  const [editando, setEditando] = useState<number | null>(null);
+  const [hora, setHora] = useState({ dia: "Lunes", ini: "18:00", fin: "21:00" });
 
   const profesores = usuarios.filter(u => u.rol === "profesor");
 
@@ -109,6 +112,46 @@ export default function PageMaterias() {
     finally { setDesasignando(null); }
   };
 
+  const autoAsignar = async () => {
+    setAuto(true);
+    try {
+      const res = await fetch(`${ACADEMIC_API}/admin/materias/asignar-auto`, { method: "POST", headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.warning(data.message || "No se pudo asignar");
+      } else {
+        const mapa = new Map<number, number>(data.asignadas.map((a: { id: number; profesor_id: number }) => [a.id, a.profesor_id]));
+        setMaterias(prev => prev.map(m => mapa.has(m.id) ? { ...m, profesor_id: mapa.get(m.id) ?? null } : m));
+        if (data.sin_lugar.length > 0) toast.warning(`${data.asignadas.length} asignadas. ${data.sin_lugar.length} no tienen profesor libre, creá más profesores.`);
+        else toast.success(`${data.asignadas.length} materias asignadas`);
+      }
+    } catch { toast.warning("Error al conectar con el servidor"); }
+    finally { setAuto(false); }
+  };
+
+  const abrirHorario = (m: Materia) => {
+    setEditando(m.id);
+    setHora({ dia: m.dia || "Lunes", ini: hhmm(m.hora_inicio ?? null) || "18:00", fin: hhmm(m.hora_fin ?? null) || "21:00" });
+  };
+
+  const guardarHorario = async (materiaId: number) => {
+    try {
+      const res = await fetch(`${ACADEMIC_API}/admin/materias/${materiaId}/horario`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ dia: hora.dia, hora_inicio: hora.ini, hora_fin: hora.fin }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.warning(data.message || "No se pudo cambiar");
+      } else {
+        toast.success("Horario cambiado");
+        setMaterias(prev => prev.map(m => m.id === materiaId ? { ...m, dia: hora.dia, hora_inicio: hora.ini, hora_fin: hora.fin } : m));
+        setEditando(null);
+      }
+    } catch { toast.warning("Error al conectar con el servidor"); }
+  };
+
   const eliminarMateria = async (materiaId: number, nombre: string) => {
     if (!confirm(`¿Eliminár "${nombre}"? También se borran todas sus inscripciones.`)) return;
     setEliminando(materiaId);
@@ -168,6 +211,7 @@ export default function PageMaterias() {
         </button>
         <input className={styles.buscar} type="search" placeholder="Buscar materia" aria-label="Buscar materia" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         <span className={styles.espacio} />
+        {sinProfe > 0 && <button type="button" className={styles.btnAuto} onClick={autoAsignar} disabled={auto}>{auto ? "Asignando..." : "Asignar profesores solo"}</button>}
         <button type="button" className={styles.btnNueva} onClick={() => setMostrarForm(v => !v)}>{mostrarForm ? "Cancelar" : "Nueva materia"}</button>
       </div>
 
@@ -205,7 +249,9 @@ export default function PageMaterias() {
                 <div>
                   <div className={styles.nombre}>{m.nombre}</div>
                 </div>
-                <span className={styles.horario}>{m.cuatrimestre ? `${m.cuatrimestre}° cuat. · ` : ""}{horario}</span>
+                <span className={styles.horario}>{m.cuatrimestre ? `${m.cuatrimestre}° cuat. · ` : ""}{horario}{" "}
+                  <button type="button" className={styles.linkHora} onClick={() => editando === m.id ? setEditando(null) : abrirHorario(m)}>{editando === m.id ? "Cerrar" : "Cambiar"}</button>
+                </span>
                 {profe ? (
                   <span className={styles.profe}>{profe}</span>
                 ) : (
@@ -223,6 +269,16 @@ export default function PageMaterias() {
                   {profe && <button type="button" className={styles.btnChico} onClick={() => desasignarProfesor(m.id)} disabled={desasignando === m.id}>{desasignando === m.id ? "..." : "Quitar profesor"}</button>}
                   <button type="button" className={`${styles.btnChico} ${styles.btnPeligro}`} onClick={() => eliminarMateria(m.id, m.nombre)} disabled={eliminando === m.id}>{eliminando === m.id ? "..." : "Eliminar"}</button>
                 </div>
+                {editando === m.id && (
+                  <div className={styles.editHora}>
+                    <select aria-label="Día" className={styles.campo} value={hora.dia} onChange={e => setHora(h => ({ ...h, dia: e.target.value }))}>
+                      {DIAS.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                    <input aria-label="Desde" type="time" className={styles.campo} value={hora.ini} onChange={e => setHora(h => ({ ...h, ini: e.target.value }))} />
+                    <input aria-label="Hasta" type="time" className={styles.campo} value={hora.fin} onChange={e => setHora(h => ({ ...h, fin: e.target.value }))} />
+                    <button type="button" className={`${styles.btnChico} ${styles.btnAzul}`} onClick={() => guardarHorario(m.id)}>Guardar</button>
+                  </div>
+                )}
               </div>
             );
           })}

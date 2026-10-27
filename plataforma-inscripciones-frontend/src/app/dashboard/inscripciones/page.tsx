@@ -10,6 +10,7 @@ type Materia = { id: number; nombre: string; profesor_id: number | null; carrera
 type Alumno = { id: number; nombre: string; email?: string };
 type Usuario = { id: number; nombre: string; rol?: string };
 type Calificacion = { user_id: number; parcial1?: number; parcial2?: number; nota?: number };
+type Periodo = { id: number; nombre: string; actual: number };
 type Mesa = { id: number; fecha: string; hora: string | null; materia_id: number };
 type InscriptoFinal = { id: number; user_id: number; nombre: string | null; nota: number | null };
 
@@ -27,16 +28,20 @@ export default function PageInscripciones() {
   const [alumnosPorMateria, setAlumnosPorMateria] = useState<Record<number, Alumno[]>>({});
   const [calificacionesPorMateria, setCalificacionesPorMateria] = useState<Record<number, Calificacion[]>>({});
   const [cargandoAlumnos, setCargandoAlumnos] = useState<number | null>(null);
+  const [periodos, setPeriodos] = useState<Periodo[]>([]);
+  const [periodoSel, setPeriodoSel] = useState("");
   const [mesas, setMesas] = useState<Mesa[] | null>(null);
   const [inscriptosPorMesa, setInscriptosPorMesa] = useState<Record<number, InscriptoFinal[]>>({});
 
   useEffect(() => {
     if (user?.rol !== "admin") { router.push("/dashboard"); return; }
     const fetchData = async () => {
-      const [materiasRes, usersRes] = await Promise.allSettled([
+      const [materiasRes, usersRes, periodosRes] = await Promise.allSettled([
         fetch(`${ACADEMIC_API}/materias`, { headers: authHeaders() }).then(r => r.json()),
         fetch(`${USERS_API}/usuarios`, { headers: authHeaders() }).then(r => r.json()),
+        fetch(`${ACADEMIC_API}/inscripciones/periodos`, { headers: authHeaders() }).then(r => r.json()),
       ]);
+      if (periodosRes.status === "fulfilled" && Array.isArray(periodosRes.value)) setPeriodos(periodosRes.value);
       if (materiasRes.status === "fulfilled" && Array.isArray(materiasRes.value)) setMaterias(materiasRes.value);
       if (usersRes.status === "fulfilled" && Array.isArray(usersRes.value)) setUsuarios(usersRes.value);
       setLoading(false);
@@ -65,6 +70,15 @@ export default function PageInscripciones() {
     setInscriptosPorMesa(prev => ({ ...prev, ...Object.fromEntries(filas) }));
   };
 
+  const cambiarPeriodo = (valor: string) => {
+    setPeriodoSel(valor);
+    setExpandida(null);
+    setAlumnosPorMateria({});
+    setCalificacionesPorMateria({});
+  };
+
+  const query = periodoSel ? `?periodo=${periodoSel}` : "";
+
   const toggleMateria = async (materiaId: number) => {
     if (expandida === materiaId) { setExpandida(null); return; }
     setExpandida(materiaId);
@@ -72,8 +86,8 @@ export default function PageInscripciones() {
     setCargandoAlumnos(materiaId);
     try {
       const [inscRes, califRes] = await Promise.allSettled([
-        fetch(`${ACADEMIC_API}/inscripciones/materias/${materiaId}/alumnos`, { headers: authHeaders() }).then(r => r.json()),
-        fetch(`${ACADEMIC_API}/materias/${materiaId}/calificaciones`, { headers: authHeaders() }).then(r => r.json()),
+        fetch(`${ACADEMIC_API}/inscripciones/materias/${materiaId}/alumnos${query}`, { headers: authHeaders() }).then(r => r.json()),
+        fetch(`${ACADEMIC_API}/materias/${materiaId}/calificaciones${query}`, { headers: authHeaders() }).then(r => r.json()),
         cargarFinales(materiaId),
       ]);
 
@@ -109,6 +123,14 @@ export default function PageInscripciones() {
       <div className="inscripciones-header">
         <h1 className="inscripciones-title">Inscripciones</h1>
         <p className="inscripciones-subtitle">Abrí una materia para ver quién se inscribió a cursar y quién se anotó a cada final.</p>
+        <label className="periodo-selector">
+          Cursada de
+          <select value={periodoSel} onChange={e => cambiarPeriodo(e.target.value)}>
+            <option value="">La más reciente de cada alumno</option>
+            {periodos.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.actual ? " (abierto)" : ""}</option>)}
+            <option value="todos">Todos los períodos</option>
+          </select>
+        </label>
       </div>
 
       <div className="inscripciones-card">

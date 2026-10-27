@@ -2,8 +2,8 @@ const assert = require("assert");
 const { crearMotor } = require("../src/motor/reglas.js");
 
 const materias = [
-  { id: 1, nombre: "Programación", carrera_id: 1 },
-  { id: 2, nombre: "Objetos", carrera_id: 1 },
+  { id: 1, nombre: "Programación", carrera_id: 1, cuatrimestre: 1 },
+  { id: 2, nombre: "Objetos", carrera_id: 1, cuatrimestre: 2 },
   { id: 3, nombre: "Arquitectura", carrera_id: 1 },
   { id: 10, nombre: "Programación (AS)", carrera_id: 2 },
 ];
@@ -97,6 +97,27 @@ t("sin columnas nuevas (datos viejos) usa las reglas de siempre", () => {
 t("materia de otra carrera no se puede cursar", () => {
   const m = crearMotor(base());
   assert.ok(m.puedeCursar(10, 1).motivos.some((x) => x.includes("no pertenece a tu carrera")));
+});
+
+t("no se puede cursar una materia de otro cuatrimestre", () => {
+  const m = crearMotor(base({ periodo: { cuatrimestre: 2, nombre: "2do cuatrimestre 2026" } }));
+  const r = m.puedeCursar(1, 1);
+  assert.strictEqual(r.permitido, false);
+  assert.ok(r.motivos[0].includes("1er cuatrimestre"));
+});
+
+t("en el cuatrimestre que corresponde se puede cursar", () => {
+  const m = crearMotor(base({ periodo: { cuatrimestre: 1, nombre: "1er cuatrimestre 2027" } }));
+  assert.strictEqual(m.puedeCursar(1, 1).permitido, true);
+});
+
+t("quien quedó libre puede recursar cuando se abre su cuatrimestre", () => {
+  const m = crearMotor(base({
+    periodo: { cuatrimestre: 1, nombre: "1er cuatrimestre 2027" },
+    calificaciones: [{ materia_id: 1, parcial1: 2, parcial2: 3 }],
+  }));
+  assert.strictEqual(m.estado(1).estado, "libre");
+  assert.strictEqual(m.puedeCursar(1, 1).permitido, true);
 });
 
 console.log(`\n${n} pruebas pasaron`);

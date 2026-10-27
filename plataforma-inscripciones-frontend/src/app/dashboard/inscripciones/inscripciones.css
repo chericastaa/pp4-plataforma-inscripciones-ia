@@ -207,3 +207,6 @@
     font-size: 12px;
     font-weight: 600;
 }
+
+.periodo-selector { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: var(--texto-suave) }
+.periodo-selector select { font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--linea); border-radius: 8px; background: #fff; color: var(--texto) }

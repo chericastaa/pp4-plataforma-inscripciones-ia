@@ -30,6 +30,20 @@ router.put(
   adminController.asignarProfesor
 );
 
+router.post(
+  "/materias/asignar-auto",
+  verificarToken,
+  verificarRol("admin"),
+  adminController.asignarAuto
+);
+
+router.put(
+  "/materias/:id/horario",
+  verificarToken,
+  verificarRol("admin"),
+  adminController.cambiarHorario
+);
+
 router.put(
   "/materias/:id/desasignar",
   verificarToken,
