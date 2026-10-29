@@ -66,9 +66,6 @@ const handleRegister = async (e: React.FormEvent) => {
     if (!registerData.codigoProfesor) {
       return toast.warning("Ingresá el código de acceso para profesores");
     }
-    if (registerData.codigoProfesor !== "PROF2026") {
-      return toast.warning("Código incorrecto");
-    }
   }
   setLoading(true);
   try {

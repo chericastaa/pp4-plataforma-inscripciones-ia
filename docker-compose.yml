@@ -16,6 +16,7 @@ services:
 
   users-service:
     build: ./users-service
+    restart: unless-stopped
     ports:
       - "3001:3001"
     environment:
@@ -25,12 +26,14 @@ services:
       DB_NAME: users_db
       DB_PORT: 3306
       PORT: 3001
+      CODIGO_PROFESOR: ${CODIGO_PROFESOR:-}
     depends_on:
       mysql:
         condition: service_healthy
 
   academic-service:
     build: ./academic-service
+    restart: unless-stopped
     ports:
       - "4000:4000"
     environment:
@@ -56,6 +59,7 @@ services:
 
   ai-service:
     build: ./ai-service
+    restart: unless-stopped
     ports:
       - "5000:5000"
     environment:
@@ -73,6 +77,7 @@ services:
 
   frontend:
     build: ./plataforma-inscripciones-frontend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:

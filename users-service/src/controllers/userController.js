@@ -10,7 +10,7 @@ const register = (req, res) => {
   if (!rol) return res.status(400).json({ message: "El rol es obligatorio" });
   if (rol === "admin") return res.status(403).json({ message: "No permitido crear admin" });
   if (rol !== "alumno" && rol !== "profesor") return res.status(400).json({ message: "Rol inválido" });
-  if (rol === "profesor" && codigoProfesor !== "PROF2026") {
+  if (rol === "profesor" && (!process.env.CODIGO_PROFESOR || codigoProfesor !== process.env.CODIGO_PROFESOR)) {
     return res.status(403).json({ message: "Código inválido" });
   }
 
