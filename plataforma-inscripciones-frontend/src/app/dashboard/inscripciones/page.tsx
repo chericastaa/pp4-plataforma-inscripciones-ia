@@ -12,7 +12,7 @@ type Usuario = { id: number; nombre: string; rol?: string };
 type Calificacion = { user_id: number; parcial1?: number; parcial2?: number; nota?: number };
 type Periodo = { id: number; nombre: string; actual: number };
 type Mesa = { id: number; fecha: string; hora: string | null; materia_id: number };
-type InscriptoFinal = { id: number; user_id: number; nombre: string | null; nota: number | null };
+type InscriptoFinal = { id: number; user_id: number; nombre: string | null; nota: number | null; ausente: number };
 
 const fechaLarga = (f: string) =>
   new Date(f).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
@@ -238,11 +238,23 @@ export default function PageInscripciones() {
                                   <div className="alumno-avatar">{(i.nombre ?? "?").charAt(0).toUpperCase()}</div>
                                   <span className="mesa-nombre">{i.nombre ?? `Alumno ${i.user_id}`}</span>
                                   <span
-                                    className="mesa-nota"
-                                    style={{ color: i.nota === null ? "#9ca3af" : Number(i.nota) >= 4 ? "#16a34a" : "#dc2626" }}
-                                  >
-                                    {i.nota === null ? "Sin nota" : `Nota ${Number(i.nota).toFixed(1)}`}
-                                  </span>
+  className="mesa-nota"
+  style={{
+    color: i.ausente === 1
+      ? "#dc2626"
+      : i.nota === null
+        ? "#9ca3af"
+        : Number(i.nota) >= 4
+          ? "#16a34a"
+          : "#dc2626"
+  }}
+>
+  {i.ausente === 1
+    ? "Ausente"
+    : i.nota === null
+      ? "Sin nota"
+      : `Nota ${Number(i.nota).toFixed(1)}`}
+</span>
                                 </div>
                               ))
                             )}

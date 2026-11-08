@@ -7,6 +7,29 @@ const falla = (res, err) => {
 
 const notaInvalida = (nota) => nota < 0 || nota > 10;
 
+const verificarPermisoMateria = async (req, materia_id) => {
+  const [materia] = await q(
+    "SELECT profesor_id FROM materias WHERE id = ?",
+    [materia_id]
+  );
+
+  if (!materia) {
+    return { ok: false, status: 404, message: "Materia no encontrada" };
+  }
+
+  if (req.user.rol === "admin") return { ok: true };
+
+  if (Number(materia.profesor_id) !== Number(req.user.id)) {
+    return {
+      ok: false,
+      status: 403,
+      message: "No sos el profesor de esta materia"
+    };
+  }
+
+  return { ok: true };
+};
+
 const getCalificaciones = async (req, res) => {
   const materia_id = req.params.id;
   const periodo = req.query.periodo;
@@ -19,6 +42,8 @@ const getCalificaciones = async (req, res) => {
   else if (Number(periodo)) { filtro = "c.periodo_id = ?"; params.push(Number(periodo)); }
 
   try {
+    const permiso = await verificarPermisoMateria(req, materia_id);
+    if (!permiso.ok) return res.status(permiso.status).json({ message: permiso.message });
     res.json(await q(`SELECT c.* FROM calificaciones c WHERE c.materia_id = ? AND ${filtro}`, params));
   } catch (err) {
     falla(res, err);
@@ -32,6 +57,8 @@ const guardarCalificacion = async (req, res) => {
   if (notaInvalida(nota)) return res.status(400).json({ message: "La nota debe estar entre 0 y 10" });
 
   try {
+    const permiso = await verificarPermisoMateria(req, materia_id);
+    if (!permiso.ok) return res.status(permiso.status).json({ message: permiso.message });
     const periodo_id = await periodoDe(user_id, materia_id);
     const r = await q(
       "INSERT INTO calificaciones (materia_id, user_id, periodo_id, parcial1, parcial2, nota, comentario) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -51,6 +78,8 @@ const actualizarCalificacion = async (req, res) => {
   if (notaInvalida(nota)) return res.status(400).json({ message: "La nota debe estar entre 0 y 10" });
 
   try {
+    const permiso = await verificarPermisoMateria(req, materia_id);
+    if (!permiso.ok) return res.status(permiso.status).json({ message: permiso.message });
     const periodo_id = await periodoDe(user_id, materia_id);
     await q(
       "UPDATE calificaciones SET parcial1 = ?, parcial2 = ?, nota = ?, comentario = ? WHERE materia_id = ? AND user_id = ? AND periodo_id <=> ?",
@@ -66,6 +95,8 @@ const eliminarCalificacion = async (req, res) => {
   const { id, user_id } = req.params;
 
   try {
+    const permiso = await verificarPermisoMateria(req, id);
+    if (!permiso.ok) return res.status(permiso.status).json({ message: permiso.message });
     const periodo_id = await periodoDe(user_id, id);
     await q("DELETE FROM calificaciones WHERE materia_id = ? AND user_id = ? AND periodo_id <=> ?", [id, user_id, periodo_id]);
     res.json({ materia_id: Number(id), user_id: Number(user_id), deleted: true });

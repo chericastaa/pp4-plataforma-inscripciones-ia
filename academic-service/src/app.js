@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const inscripcionesRoutes = require("./routes/inscripciones");
+const confirmacionesRoutes = require("./routes/confirmaciones");
 
 const materiasRoutes = require("./routes/materias");
 const profesorRoutes = require("./routes/profesor");
@@ -28,5 +29,6 @@ app.use("/materias", materiasRoutes);
 app.use("/motor", motorRoutes);
 app.use("/finales", finalesRoutes);
 app.use("/reglas", reglasRoutes);
+app.use("/confirmaciones", confirmacionesRoutes);
 
 module.exports = app;

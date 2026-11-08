@@ -11,7 +11,8 @@ const falla = (res, err) => {
 };
 
 const inscribir = async (req, res) => {
-  const { user_id, materia_id } = req.body;
+  const { id: user_id } = req.user;
+  const { materia_id } = req.body;
 
   try {
     const { data: user } = await axios.get(`${USERS_SERVICE_URL}/usuarios/${user_id}`, {
@@ -36,6 +37,23 @@ const inscribir = async (req, res) => {
       [user_id, materia_id, datos.periodo.id]
     );
     if (ya) return res.status(400).json({ message: "Ya está inscripto en esta materia" });
+
+    const confirmacion = await q(
+  `UPDATE confirmaciones_pendientes
+   SET estado = 'consumida'
+   WHERE user_id = ?
+   AND tipo = 'cursada'
+   AND recurso_id = ?
+   AND estado = 'confirmada'
+   AND expira_en > NOW()`,
+  [user_id, Number(materia_id)]
+);
+
+if (!confirmacion.affectedRows) {
+  return res.status(403).json({
+    message: "Debés confirmar la inscripción antes de continuar"
+  });
+}
 
     const recursa = motor.estado(Number(materia_id)).estado === "libre";
     const r = await q("INSERT INTO inscripciones (user_id, materia_id, periodo_id) VALUES (?, ?, ?)", [
@@ -73,6 +91,14 @@ const getAlumnosMateria = async (req, res) => {
 
 const eliminarInscripcion = async (req, res) => {
   try {
+    // verificación
+    const [insc] = await q("SELECT user_id FROM inscripciones WHERE id = ?", [req.params.id]);
+    if (!insc) return res.status(404).json({ message: "Inscripción no encontrada" });
+    const esStaff = ["admin", "profesor"].includes(req.user.rol);
+    const esDuenio = Number(insc.user_id) === Number(req.user.id);
+    if (!esStaff && !esDuenio) {
+      return res.status(403).json({ message: "No podés eliminar una inscripción ajena" });
+    }
     await q("DELETE FROM inscripciones WHERE id = ?", [req.params.id]);
     res.json({ id: Number(req.params.id), deleted: true });
   } catch (err) {
@@ -82,6 +108,13 @@ const eliminarInscripcion = async (req, res) => {
 
 const getMateriasDeUsuario = async (req, res) => {
   try {
+    // verificación
+    const esStaff = ["admin", "profesor"].includes(req.user.rol);
+    const esDuenio = Number(req.params.id) === Number(req.user.id);
+    if (!esStaff && !esDuenio) {
+      return res.status(403).json({ message: "Solo podés ver tus propias materias" });
+    }
+
     const rows = await q(
       `SELECT m.*, i.id AS inscripcion_id FROM materias m
        JOIN inscripciones i ON m.id = i.materia_id

@@ -7,6 +7,33 @@ const AI_BASE_URL = process.env.AI_BASE_URL || "http://ollama:11434/v1";
 const AI_MODEL = process.env.AI_MODEL || "qwen2.5:1.5b";
 const AI_API_KEY = process.env.AI_API_KEY || "ollama";
 const MAX_VUELTAS = 4;
+const TIEMPO_MAXIMO_MS = 60000;
+
+const LIMITE_SOLICITUDES = 10;
+const VENTANA_MS = 60 * 1000;
+const solicitudes = new Map();
+
+const limitarSolicitudes = (req, res, next) => {
+  const id = req.user.id;
+  const ahora = Date.now();
+  const datos = solicitudes.get(id) || { cantidad: 0, inicio: ahora };
+
+  if (ahora - datos.inicio >= VENTANA_MS) {
+    datos.cantidad = 0;
+    datos.inicio = ahora;
+  }
+
+  if (datos.cantidad >= LIMITE_SOLICITUDES) {
+    return res.status(429).json({
+      message: "Alcanzaste el límite de solicitudes. Esperá un minuto y volvé a intentar."
+    });
+  }
+
+  datos.cantidad++;
+  solicitudes.set(id, datos);
+
+  next();
+};
 
 const app = express();
 app.use(cors());
@@ -22,23 +49,26 @@ const REINTENTABLES = [429, 500, 502, 503, 504];
 
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function pedirModelo(modelo, mensajes, tools) {
+async function pedirModelo(modelo, mensajes, tools, restante) {
   return fetch(`${AI_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
     body: JSON.stringify({ model: modelo, messages: mensajes, tools, temperature: 0.1, max_tokens: 500 }),
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(Math.min(30000, restante)),
   });
 }
 
-async function llamarModelo(mensajes, tools) {
+async function llamarModelo(mensajes, tools, limiteTiempo)  {
   let ultimo = null;
 
   for (const modelo of MODELOS) {
     for (let intento = 0; intento < 3; intento++) {
       try {
-        const respuesta = await pedirModelo(modelo, mensajes, tools);
-
+        const restante = limiteTiempo - Date.now();
+if (restante <= 0) {
+  throw new Error("La solicitud tardó demasiado.");
+}
+const respuesta = await pedirModelo(modelo, mensajes, tools, restante);
         if (respuesta.ok) {
           const data = await respuesta.json();
           return data.choices[0].message;
@@ -52,7 +82,8 @@ async function llamarModelo(mensajes, tools) {
         console.error(`Error de red con la IA (${modelo}):`, err.message);
         ultimo = 0;
       }
-      await esperar(1000 * (intento + 1));
+      const espera = Math.min(1000 * (intento + 1), Math.max(0, limiteTiempo - Date.now()));
+if (espera > 0) await esperar(espera);
     }
   }
 
@@ -70,7 +101,7 @@ const preguntaDe = (t) =>
     ? `¿Confirmás anotarte al final de ${t.materia} del ${t.fecha}?`
     : `¿Confirmás inscribirte a cursar ${t.materia}?`;
 
-app.post("/chat", verificarToken, async (req, res) => {
+app.post("/chat", verificarToken, limitarSolicitudes, async (req, res) => {
   const { mensaje, historial = [] } = req.body;
 
   if (!mensaje || !mensaje.trim()) {
@@ -99,10 +130,11 @@ Si saludan o preguntan algo ajeno a la plataforma, respondé sin herramientas.`;
 
   let tarjeta = null;
   let actualizo = false;
-
+  const limiteTiempo = Date.now() + TIEMPO_MAXIMO_MS;
   try {
     for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
-      const msg = await llamarModelo(mensajes, definiciones);
+
+      const msg = await llamarModelo(mensajes, definiciones, limiteTiempo);
 
       if (!msg.tool_calls?.length) {
         let respuesta = msg.content || "No entendí la pregunta, ¿me la repetís?";

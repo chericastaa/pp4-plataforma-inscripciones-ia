@@ -32,12 +32,30 @@ async function enviar(url, token, body) {
 
 const AFIRMATIVO = /\b(si|dale|ok|okey|confirmo|confirmado|confirmar|listo|de una|bueno|perfecto|obvio|claro|adelante)\b/;
 
-function confirmado(contexto, nombre) {
-  const mensaje = normalizar(contexto.mensaje);
-  const previos = (contexto.historial || []).filter((m) => m.role === "assistant");
-  const ultimo = normalizar(previos[previos.length - 1]?.content);
-  return AFIRMATIVO.test(mensaje) && !/\bno\b/.test(mensaje) && ultimo.includes("?") && ultimo.includes(normalizar(nombre));
-}
+const pendientes = new Map();
+const TTL = 5 * 60 * 1000;
+
+const esSi = (m) =>
+  AFIRMATIVO.test(normalizar(m)) &&
+  !/\bno\b/.test(normalizar(m));
+
+const pedirConf = (u, k) => {
+  pendientes.set(`${u}:${k}`, Date.now());
+};
+
+const tomarConf = (u, k) => {
+  const key = `${u}:${k}`;
+  const ts = pendientes.get(key);
+
+  if (!ts || Date.now() - ts > TTL) {
+    pendientes.delete(key);
+    return false;
+  }
+
+  pendientes.delete(key);
+  return true;
+};
+
 
 const fechaIso = (f) => String(f).slice(0, 10);
 
@@ -138,63 +156,158 @@ function crearHerramientas(user, token, contexto = { mensaje: "", historial: [] 
     },
 
     inscribirme_a_cursar: {
-      descripcion: "Inscribe al alumno a la cursada de una materia. Usala solo si el alumno pidió inscribirse. Antes de inscribir hay que pedirle confirmación nombrando la materia; cuando responda que sí, llamala de nuevo.",
-      parametros: { materia: "Nombre de la materia" },
-      soloAlumno: true,
-      ejecutar: ({ materia }) =>
-        conMateria(materia, async (m) => {
-          if (!m.cursar.permitido) return { inscripto: false, materia: m.nombre, motivos: m.cursar.motivos };
-          if (!confirmado(contexto, m.nombre)) {
-            return {
-              inscripto: false,
-              requiere_confirmacion: true,
-              materia: m.nombre,
-              tarjeta: { tipo: "cursar", materia: m.nombre },
-              instruccion: `Todavía no se inscribió. Preguntale al alumno si confirma la inscripción a CURSAR ${m.nombre} y esperá su respuesta.`,
-            };
-          }
-          await enviar(`${ACADEMIC_API}/inscripciones`, token, { user_id: user.id, materia_id: m.id });
-          return { inscripto: true, materia: m.nombre, tipo: "cursada" };
-        }),
-    },
+  descripcion: "Inscribe al alumno a la cursada de una materia. Usala solo si el alumno pidió inscribirse. Antes de inscribir hay que pedirle confirmación nombrando la materia; cuando responda que sí, llamala de nuevo.",
+  parametros: { materia: "Nombre de la materia" },
+  soloAlumno: true,
+  ejecutar: ({ materia }) =>
+    conMateria(materia, async (m) => {
+      if (!m.cursar.permitido) {
+        return {
+          inscripto: false,
+          materia: m.nombre,
+          motivos: m.cursar.motivos
+        };
+      }
+
+      if (!(esSi(contexto.mensaje) && tomarConf(user.id, m.id))) {
+        pedirConf(user.id, m.id);
+
+        await enviar(`${ACADEMIC_API}/confirmaciones/pendiente`, token, {
+          tipo: "cursada",
+          recurso_id: m.id
+        });
+
+        return {
+          inscripto: false,
+          requiere_confirmacion: true,
+          materia: m.nombre,
+          tarjeta: {
+            tipo: "cursar",
+            materia: m.nombre
+          },
+          instruccion: `Todavía no se inscribió. Preguntale al alumno si confirma la inscripción a CURSAR ${m.nombre} y esperá su respuesta.`
+        };
+      }
+
+      await enviar(`${ACADEMIC_API}/confirmaciones/confirmar`, token, {
+        tipo: "cursada",
+        recurso_id: m.id
+      });
+
+      await enviar(`${ACADEMIC_API}/inscripciones`, token, {
+        user_id: user.id,
+        materia_id: m.id
+      });
+
+      return {
+        inscripto: true,
+        materia: m.nombre,
+        tipo: "cursada"
+      };
+    }),
+},
 
     anotarme_a_final: {
-      descripcion: "Anota al alumno a una mesa de final de una materia. Usala solo si el alumno pidió anotarse. Si hay varias fechas, preguntale cuál. Antes de anotar hay que pedirle confirmación nombrando la materia y la fecha; cuando responda que sí, llamala de nuevo.",
-      parametros: { materia: "Nombre de la materia", fecha: "Opcional: fecha de la mesa en formato AAAA-MM-DD, como la devuelve ver_mesas_de_final" },
-      soloAlumno: true,
-      ejecutar: ({ materia, fecha }) =>
-        conMateria(materia, async (m) => {
-          const todas = await pedir(`${ACADEMIC_API}/finales/mesas`, token);
-          const mesas = todas.filter((x) => x.materia_id === m.id);
-          if (!mesas.length) return { anotado: false, materia: m.nombre, error: "No hay mesas de final cargadas para esa materia" };
+  descripcion: "Anota al alumno a una mesa de final de una materia. Usala solo si el alumno pidió anotarse. Si hay varias fechas, preguntale cuál. Antes de anotar hay que pedirle confirmación nombrando la materia y la fecha; cuando responda que sí, llamala de nuevo.",
+  parametros: {
+    materia: "Nombre de la materia",
+    fecha: "Opcional: fecha de la mesa en formato AAAA-MM-DD, como la devuelve ver_mesas_de_final"
+  },
+  soloAlumno: true,
+  ejecutar: ({ materia, fecha }) =>
+    conMateria(materia, async (m) => {
+      const todas = await pedir(`${ACADEMIC_API}/finales/mesas`, token);
+      const mesas = todas.filter((x) => x.materia_id === m.id);
 
-          const elegida = fecha ? mesas.find((x) => coincideFecha(x.fecha, fecha)) : mesas.length === 1 ? mesas[0] : null;
-          if (!elegida) {
-            return {
-              anotado: false,
-              materia: m.nombre,
-              instruccion: fecha ? "Esa fecha no existe para la materia. Mostrale las fechas y preguntale cuál." : "Hay varias mesas. Preguntale al alumno a cuál fecha quiere anotarse.",
-              mesas: mesas.map((x) => ({ fecha: fechaIso(x.fecha), hora: x.hora ? String(x.hora).slice(0, 5) : null, anotado: Boolean(x.inscripcion_id) })),
-            };
-          }
+      if (!mesas.length) {
+        return {
+          anotado: false,
+          materia: m.nombre,
+          error: "No hay mesas de final cargadas para esa materia"
+        };
+      }
 
-          const detalle = { materia: m.nombre, fecha: fechaIso(elegida.fecha), hora: elegida.hora ? String(elegida.hora).slice(0, 5) : null };
-          if (elegida.inscripcion_id) return { anotado: false, ya_estaba_anotado: true, ...detalle };
-          if (!elegida.rendir.permitido) return { anotado: false, ...detalle, motivos: elegida.rendir.motivos };
-          if (!confirmado(contexto, m.nombre)) {
-            return {
-              anotado: false,
-              requiere_confirmacion: true,
-              ...detalle,
-              tarjeta: { tipo: "final", ...detalle },
-              instruccion: `Todavía no se anotó. Preguntale al alumno si confirma anotarse al FINAL de ${m.nombre} del ${detalle.fecha} y esperá su respuesta.`,
-            };
-          }
-          await enviar(`${ACADEMIC_API}/finales/inscripciones`, token, { mesa_id: elegida.id });
-          return { anotado: true, tipo: "final", ...detalle };
-        }),
-    },
+      const elegida = fecha
+        ? mesas.find((x) => coincideFecha(x.fecha, fecha))
+        : mesas.length === 1
+          ? mesas[0]
+          : null;
 
+      if (!elegida) {
+        return {
+          anotado: false,
+          materia: m.nombre,
+          instruccion: fecha
+            ? "Esa fecha no existe para la materia. Mostrale las fechas y preguntale cuál."
+            : "Hay varias mesas. Preguntale al alumno a cuál fecha quiere anotarse.",
+          mesas: mesas.map((x) => ({
+            fecha: fechaIso(x.fecha),
+            hora: x.hora ? String(x.hora).slice(0, 5) : null,
+            anotado: Boolean(x.inscripcion_id)
+          }))
+        };
+      }
+
+      const detalle = {
+        materia: m.nombre,
+        fecha: fechaIso(elegida.fecha),
+        hora: elegida.hora ? String(elegida.hora).slice(0, 5) : null
+      };
+
+      if (elegida.inscripcion_id) {
+        return {
+          anotado: false,
+          ya_estaba_anotado: true,
+          ...detalle
+        };
+      }
+
+      if (!elegida.rendir.permitido) {
+        return {
+          anotado: false,
+          ...detalle,
+          motivos: elegida.rendir.motivos
+        };
+      }
+
+      const claveFinal = `${m.id}-${elegida.id}`;
+
+      if (!(esSi(contexto.mensaje) && tomarConf(user.id, claveFinal))) {
+        pedirConf(user.id, claveFinal);
+
+        await enviar(`${ACADEMIC_API}/confirmaciones/pendiente`, token, {
+          tipo: "final",
+          recurso_id: elegida.id
+        });
+
+        return {
+          anotado: false,
+          requiere_confirmacion: true,
+          ...detalle,
+          tarjeta: {
+            tipo: "final",
+            ...detalle
+          },
+          instruccion: `Todavía no se anotó. Preguntale al alumno si confirma anotarse al FINAL de ${m.nombre} del ${detalle.fecha} y esperá su respuesta.`
+        };
+      }
+
+      await enviar(`${ACADEMIC_API}/confirmaciones/confirmar`, token, {
+        tipo: "final",
+        recurso_id: elegida.id
+      });
+
+      await enviar(`${ACADEMIC_API}/finales/inscripciones`, token, {
+        mesa_id: elegida.id
+      });
+
+      return {
+        anotado: true,
+        tipo: "final",
+        ...detalle
+      };
+    }),
+},
     ver_mesas_de_final: {
       descripcion: "Devuelve las próximas fechas de mesas de final. Para alumnos indica a cuáles se puede anotar o ya está anotado.",
       parametros: { materia: "Opcional: filtrar por nombre de materia" },

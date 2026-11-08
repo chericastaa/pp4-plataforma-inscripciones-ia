@@ -66,6 +66,7 @@ CREATE TABLE `inscripciones_finales` (
   `mesa_id` int NOT NULL,
   `user_id` int NOT NULL,
   `nota` decimal(4,2) DEFAULT NULL,
+  `ausente` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `mesa_id` (`mesa_id`),

@@ -64,7 +64,27 @@ const inscribirFinal = async (req, res) => {
       return res.status(400).json({ message: resultado.motivos.join(" · "), motivos: resultado.motivos });
     }
 
-    const result = await q("INSERT INTO inscripciones_finales (mesa_id, user_id) VALUES (?, ?)", [mesaId, req.user.id]);
+    const confirmacion = await q(
+  `UPDATE confirmaciones_pendientes
+   SET estado = 'consumida'
+   WHERE user_id = ?
+   AND tipo = 'final'
+   AND recurso_id = ?
+   AND estado = 'confirmada'
+   AND expira_en > NOW()`,
+  [req.user.id, mesaId]
+);
+
+if (!confirmacion.affectedRows) {
+  return res.status(403).json({
+    message: "Debés confirmar la inscripción al final antes de continuar"
+  });
+}
+
+const result = await q(
+  "INSERT INTO inscripciones_finales (mesa_id, user_id) VALUES (?, ?)",
+  [mesaId, req.user.id]
+);
     res.status(201).json({ message: "Te anotaste al final", id: result.insertId });
   } catch (err) {
     console.error("Error en finales/inscribir:", err);
@@ -94,14 +114,35 @@ const cargarNotaFinal = async (req, res) => {
     return res.status(403).json({ message: "Solo profesores o admin pueden cargar notas" });
   }
 
-  const nota = Number(req.body.nota);
-  if (Number.isNaN(nota) || nota < 1 || nota > 10) {
-    return res.status(400).json({ message: "La nota tiene que ser entre 1 y 10" });
-  }
-
   try {
-    const result = await q("UPDATE inscripciones_finales SET nota = ? WHERE id = ?", [nota, req.params.id]);
-    if (result.affectedRows === 0) return res.status(404).json({ message: "La inscripción no existe" });
+    if (req.body.ausente === true) {
+      const result = await q(
+        "UPDATE inscripciones_finales SET nota = NULL, ausente = 1 WHERE id = ?",
+        [req.params.id]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: "La inscripción no existe" });
+      }
+
+      return res.json({ id: Number(req.params.id), ausente: true });
+    }
+
+    const nota = Number(req.body.nota);
+
+    if (Number.isNaN(nota) || nota < 1 || nota > 10) {
+      return res.status(400).json({ message: "La nota tiene que ser entre 1 y 10" });
+    }
+
+    const result = await q(
+      "UPDATE inscripciones_finales SET nota = ?, ausente = 0 WHERE id = ?",
+      [nota, req.params.id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "La inscripción no existe" });
+    }
+
     res.json({ id: Number(req.params.id), nota });
   } catch (err) {
     console.error("Error en finales/nota:", err);
@@ -112,7 +153,7 @@ const cargarNotaFinal = async (req, res) => {
 const getInscriptosMesa = async (req, res) => {
   try {
     const rows = await q(
-      `SELECT inf.id, inf.user_id, inf.nota, u.nombre
+      `SELECT inf.id, inf.user_id, inf.nota, inf.ausente, u.nombre
        FROM inscripciones_finales inf
        LEFT JOIN users_db.usuarios u ON u.id = inf.user_id
        WHERE inf.mesa_id = ?`,
