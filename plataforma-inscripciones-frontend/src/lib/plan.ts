@@ -31,6 +31,7 @@ export type Mesa = {
   materia_id: number;
   materia: string;
   inscripcion_id: number | null;
+  ausente: number;
   rendir: Resultado;
 };
 

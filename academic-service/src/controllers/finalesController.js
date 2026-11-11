@@ -32,6 +32,7 @@ const getMesas = async (req, res) => {
         return {
           ...mesa,
           inscripcion_id: inscripcion?.id ?? null,
+          ausente: inscripcion?.ausente ?? 0,
           estado_materia: motor.estado(mesa.materia_id).estado,
           rendir: inscripcion ? { permitido: false, motivos: [] } : motor.puedeRendir(mesa.materia_id),
         };

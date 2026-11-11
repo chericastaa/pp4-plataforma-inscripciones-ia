@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authHeaders, USERS_API, ACADEMIC_API } from "@/src/lib/api";
 import { nombreCarrera } from "@/src/lib/plan";
 import "./inscripciones.css";
+import { toast } from "sonner";
 
 type Materia = { id: number; nombre: string; profesor_id: number | null; carrera_id?: number | null };
 type Alumno = { id: number; nombre: string; email?: string };
@@ -32,6 +33,8 @@ export default function PageInscripciones() {
   const [periodoSel, setPeriodoSel] = useState("");
   const [mesas, setMesas] = useState<Mesa[] | null>(null);
   const [inscriptosPorMesa, setInscriptosPorMesa] = useState<Record<number, InscriptoFinal[]>>({});
+  const [notasFinales, setNotasFinales] = useState<Record<number, string>>({});
+  const [guardandoFinal, setGuardandoFinal] = useState<number | null>(null);
 
   useEffect(() => {
     if (user?.rol !== "admin") { router.push("/dashboard"); return; }
@@ -117,6 +120,81 @@ export default function PageInscripciones() {
 
   const getNotaAlumno = (materiaId: number, alumnoId: number) =>
     calificacionesPorMateria[materiaId]?.find(c => c.user_id === alumnoId);
+
+
+  const guardarNotaFinal = async (i: InscriptoFinal, mesaId: number) => {
+    const nota = Number(notasFinales[i.id]);
+
+    if (!notasFinales[i.id] || !Number.isFinite(nota) || nota < 1 || nota > 10) {
+      toast.warning("Ingresá una nota entre 1 y 10");
+      return;
+    }
+
+    setGuardandoFinal(i.id);
+
+    try {
+      const res = await fetch(`${ACADEMIC_API}/finales/inscripciones/${i.id}/nota`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ nota }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.warning(data.message || "No se pudo guardar la nota");
+        return;
+      }
+
+      setInscriptosPorMesa(prev => ({
+        ...prev,
+        [mesaId]: (prev[mesaId] ?? []).map(x =>
+          x.id === i.id ? { ...x, nota, ausente: 0 } : x
+        ),
+      }));
+
+      toast.success("Nota del final guardada");
+    } catch {
+      toast.warning("Error al conectar con el servidor");
+    } finally {
+      setGuardandoFinal(null);
+    }
+  };
+
+  const marcarAusente = async (i: InscriptoFinal, mesaId: number) => {
+    if (!window.confirm(`¿Marcar como ausente a ${i.nombre ?? "este alumno"}?`)) return;
+
+    setGuardandoFinal(i.id);
+
+    try {
+      const res = await fetch(`${ACADEMIC_API}/finales/inscripciones/${i.id}/nota`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ ausente: true }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.warning(data.message || "No se pudo marcar como ausente");
+        return;
+      }
+
+      setInscriptosPorMesa(prev => ({
+        ...prev,
+        [mesaId]: (prev[mesaId] ?? []).map(x =>
+          x.id === i.id ? { ...x, nota: null, ausente: 1 } : x
+        ),
+      }));
+
+      toast.success("Alumno marcado como ausente");
+    } catch {
+      toast.warning("Error al conectar con el servidor");
+    } finally {
+      setGuardandoFinal(null);
+    }
+  };
+
 
   return (
     <div className="inscripciones-container">
@@ -234,28 +312,68 @@ export default function PageInscripciones() {
                               <div className="alumnos-empty">Nadie se anotó a esta mesa.</div>
                             ) : (
                               lista.map(i => (
-                                <div key={i.id} className="alumno-row mesa-alumno">
-                                  <div className="alumno-avatar">{(i.nombre ?? "?").charAt(0).toUpperCase()}</div>
-                                  <span className="mesa-nombre">{i.nombre ?? `Alumno ${i.user_id}`}</span>
-                                  <span
-  className="mesa-nota"
-  style={{
-    color: i.ausente === 1
-      ? "#dc2626"
+                                
+                             
+
+<div key={i.id} className="alumno-row mesa-alumno">
+  <div className="alumno-avatar">
+    {(i.nombre ?? "?").charAt(0).toUpperCase()}
+  </div>
+
+  <span className="mesa-nombre">
+    {i.nombre ?? `Alumno ${i.user_id}`}
+  </span>
+
+  <span
+    className="mesa-nota"
+    style={{
+      color: i.ausente === 1
+        ? "#dc2626"
+        : i.nota === null
+          ? "#9ca3af"
+          : Number(i.nota) >= 4
+            ? "#16a34a"
+            : "#dc2626"
+    }}
+  >
+    {i.ausente === 1
+      ? "Ausente"
       : i.nota === null
-        ? "#9ca3af"
-        : Number(i.nota) >= 4
-          ? "#16a34a"
-          : "#dc2626"
-  }}
->
-  {i.ausente === 1
-    ? "Ausente"
-    : i.nota === null
-      ? "Sin nota"
-      : `Nota ${Number(i.nota).toFixed(1)}`}
-</span>
-                                </div>
+        ? "Sin nota"
+        : `Nota ${Number(i.nota).toFixed(1)}`}
+  </span>
+
+  <input
+    type="number"
+    min="1"
+    max="10"
+    step="0.5"
+    placeholder="Nota"
+    value={notasFinales[i.id] ?? (i.nota !== null ? String(i.nota) : "")}
+    onChange={e => setNotasFinales(prev => ({
+      ...prev,
+      [i.id]: e.target.value,
+    }))}
+    style={{ width: "65px", padding: "6px" }}
+  />
+
+  <button
+    type="button"
+    disabled={guardandoFinal === i.id}
+    onClick={() => guardarNotaFinal(i, mesa.id)}
+  >
+    {guardandoFinal === i.id ? "Guardando..." : "Guardar nota"}
+  </button>
+
+  <button
+    type="button"
+    disabled={guardandoFinal === i.id || i.ausente === 1}
+    onClick={() => marcarAusente(i, mesa.id)}
+  >
+    Marcar ausente
+  </button>
+</div>
+
                               ))
                             )}
                           </div>

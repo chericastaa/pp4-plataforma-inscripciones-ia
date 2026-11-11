@@ -15,7 +15,7 @@ async function cargarDatosAlumno(userId) {
        LEFT JOIN periodos p ON p.id = i.periodo_id
        WHERE i.user_id = ? ORDER BY i.periodo_id, i.id`, [userId]),
     q("SELECT materia_id, periodo_id, parcial1, parcial2, nota FROM calificaciones WHERE user_id = ?", [userId]),
-    q(`SELECT inf.id, inf.mesa_id, inf.nota, mf.materia_id, mf.fecha
+    q(`SELECT inf.id, inf.mesa_id, inf.nota, inf.ausente, mf.materia_id, mf.fecha
        FROM inscripciones_finales inf
        JOIN mesas_finales mf ON mf.id = inf.mesa_id
        WHERE inf.user_id = ?`, [userId]),

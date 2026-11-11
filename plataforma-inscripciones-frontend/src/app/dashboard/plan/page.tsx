@@ -77,12 +77,12 @@ export default function PlanDeEstudios() {
       method: "POST",
       body: JSON.stringify({ user_id: user?.id, materia_id: m.id }),
     }, `Te inscribiste a cursar ${m.nombre}`);
-
-  const anotarFinal = (mesa: Mesa) =>
-    accion(`f${mesa.id}`, `${ACADEMIC_API}/finales/inscripciones`, {
-      method: "POST",
-      body: JSON.stringify({ mesa_id: mesa.id }),
-    }, `Te anotaste al final de ${mesa.materia}`);
+  
+const anotarFinal = (mesa: Mesa) =>
+  accion(`f${mesa.id}`, `${ACADEMIC_API}/finales/inscripciones`, {
+    method: "POST",
+    body: JSON.stringify({ mesa_id: mesa.id }),
+  }, `Te anotaste al final de ${mesa.materia}`);
 
   const bajaFinal = (mesa: Mesa) =>
     accion(`f${mesa.id}`, `${ACADEMIC_API}/finales/inscripciones/${mesa.inscripcion_id}`, { method: "DELETE" }, "Te diste de baja del final");
@@ -342,15 +342,17 @@ function Acciones({
                   <span className={styles.mesaFecha}>{formatearFecha(x.fecha)}</span>
                   <span className={styles.mesaHora}>{x.hora ? `${hhmm(x.hora)} hs` : ""}</span>
                 </span>
-                {x.inscripcion_id ? (
-                  <button className={styles.btnSecundario} disabled={procesando === `f${x.id}`} onClick={() => onBaja(x)}>
-                    Darme de baja del final
-                  </button>
-                ) : (
-                  <button className={styles.btnPrimario} disabled={!m.rendir.permitido || procesando === `f${x.id}`} onClick={() => onAnotar(x)}>
-                    {procesando === `f${x.id}` ? "Anotando..." : "Anotarme al final"}
-                  </button>
-                )}
+                {x.ausente === 1 ? (
+  <span className={styles.detalleDato}>Ausente</span>
+) : x.inscripcion_id ? (
+  <button className={styles.btnSecundario} disabled={procesando === `f${x.id}`} onClick={() => onBaja(x)}>
+    Darme de baja del final
+  </button>
+) : (
+  <button className={styles.btnPrimario} disabled={!m.rendir.permitido || procesando === `f${x.id}`} onClick={() => onAnotar(x)}>
+    {procesando === `f${x.id}` ? "Anotando..." : "Anotarme al final"}
+  </button>
+)}
               </li>
             ))}
           </ul>
