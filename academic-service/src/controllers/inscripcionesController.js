@@ -91,10 +91,12 @@ const getAlumnosMateria = async (req, res) => {
 
 const eliminarInscripcion = async (req, res) => {
   try {
-    // verificación
-    const [insc] = await q("SELECT user_id FROM inscripciones WHERE id = ?", [req.params.id]);
+    const [insc] = await q(
+      "SELECT i.user_id, m.profesor_id FROM inscripciones i JOIN materias m ON m.id = i.materia_id WHERE i.id = ?",
+      [req.params.id]
+    );
     if (!insc) return res.status(404).json({ message: "Inscripción no encontrada" });
-    const esStaff = ["admin", "profesor"].includes(req.user.rol);
+    const esStaff = req.user.rol === "admin" || (req.user.rol === "profesor" && insc.profesor_id === req.user.id);
     const esDuenio = Number(insc.user_id) === Number(req.user.id);
     if (!esStaff && !esDuenio) {
       return res.status(403).json({ message: "No podés eliminar una inscripción ajena" });
@@ -108,8 +110,7 @@ const eliminarInscripcion = async (req, res) => {
 
 const getMateriasDeUsuario = async (req, res) => {
   try {
-    // verificación
-    const esStaff = ["admin", "profesor"].includes(req.user.rol);
+    const esStaff = req.user.rol === "admin";
     const esDuenio = Number(req.params.id) === Number(req.user.id);
     if (!esStaff && !esDuenio) {
       return res.status(403).json({ message: "Solo podés ver tus propias materias" });

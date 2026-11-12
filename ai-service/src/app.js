@@ -3,9 +3,9 @@ const cors = require("cors");
 const verificarToken = require("./auth");
 const { crearHerramientas } = require("./tools");
 
-const AI_BASE_URL = process.env.AI_BASE_URL || "http://ollama:11434/v1";
-const AI_MODEL = process.env.AI_MODEL || "qwen2.5:1.5b";
-const AI_API_KEY = process.env.AI_API_KEY || "ollama";
+const AI_BASE_URL = process.env.AI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai";
+const AI_MODEL = process.env.AI_MODEL || "gemini-3.1-flash-lite";
+const AI_API_KEY = process.env.AI_API_KEY || "";
 const MAX_VUELTAS = 4;
 const TIEMPO_MAXIMO_MS = 60000;
 

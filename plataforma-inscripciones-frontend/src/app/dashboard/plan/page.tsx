@@ -72,17 +72,33 @@ export default function PlanDeEstudios() {
     }
   };
 
-  const cursar = (m: MateriaPlan) =>
-    accion(`c${m.id}`, `${ACADEMIC_API}/inscripciones`, {
+  const confirmar = async (tipo: string, recurso_id: number) => {
+    for (const paso of ["pendiente", "confirmar"]) {
+      const res = await fetch(`${ACADEMIC_API}/confirmaciones/${paso}`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ tipo, recurso_id }),
+      });
+      if (!res.ok) return false;
+    }
+    return true;
+  };
+
+  const cursar = async (m: MateriaPlan) => {
+    if (!(await confirmar("cursada", m.id))) return toast.warning("No se pudo confirmar la inscripción");
+    await accion(`c${m.id}`, `${ACADEMIC_API}/inscripciones`, {
       method: "POST",
       body: JSON.stringify({ user_id: user?.id, materia_id: m.id }),
     }, `Te inscribiste a cursar ${m.nombre}`);
-  
-const anotarFinal = (mesa: Mesa) =>
-  accion(`f${mesa.id}`, `${ACADEMIC_API}/finales/inscripciones`, {
-    method: "POST",
-    body: JSON.stringify({ mesa_id: mesa.id }),
-  }, `Te anotaste al final de ${mesa.materia}`);
+  };
+
+  const anotarFinal = async (mesa: Mesa) => {
+    if (!(await confirmar("final", mesa.id))) return toast.warning("No se pudo confirmar la inscripción");
+    await accion(`f${mesa.id}`, `${ACADEMIC_API}/finales/inscripciones`, {
+      method: "POST",
+      body: JSON.stringify({ mesa_id: mesa.id }),
+    }, `Te anotaste al final de ${mesa.materia}`);
+  };
 
   const bajaFinal = (mesa: Mesa) =>
     accion(`f${mesa.id}`, `${ACADEMIC_API}/finales/inscripciones/${mesa.inscripcion_id}`, { method: "DELETE" }, "Te diste de baja del final");

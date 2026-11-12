@@ -4,6 +4,16 @@ const { cargarDatosAlumno, obtenerUsuario } = require("../motor/datos");
 
 const q = (sql, params) => db.promise().query(sql, params).then(([rows]) => rows);
 
+const permitido = async (usuario, mesaId) => {
+  if (usuario.rol === "admin") return true;
+  if (usuario.rol !== "profesor") return false;
+  const [m] = await q(
+    "SELECT m.id FROM mesas_finales f JOIN materias m ON m.id = f.materia_id WHERE f.id = ? AND m.profesor_id = ?",
+    [mesaId, usuario.id]
+  );
+  return Boolean(m);
+};
+
 const getMesas = async (req, res) => {
   try {
     const usuario = await obtenerUsuario(req.user.id, req.headers.authorization).catch(() => null);
@@ -95,10 +105,13 @@ const result = await q(
 
 const bajaFinal = async (req, res) => {
   try {
-    const [insc] = await q("SELECT id, user_id, nota FROM inscripciones_finales WHERE id = ?", [req.params.id]);
+    const [insc] = await q("SELECT id, mesa_id, user_id, nota FROM inscripciones_finales WHERE id = ?", [req.params.id]);
     if (!insc) return res.status(404).json({ message: "La inscripción no existe" });
     if (req.user.rol === "alumno" && insc.user_id !== req.user.id) {
       return res.status(403).json({ message: "No podés dar de baja la inscripción de otro alumno" });
+    }
+    if (req.user.rol === "profesor" && !(await permitido(req.user, insc.mesa_id))) {
+      return res.status(403).json({ message: "No tenés permisos" });
     }
     if (insc.nota !== null) return res.status(400).json({ message: "Ese final ya tiene nota cargada" });
 
@@ -116,6 +129,10 @@ const cargarNotaFinal = async (req, res) => {
   }
 
   try {
+    const [insc] = await q("SELECT mesa_id FROM inscripciones_finales WHERE id = ?", [req.params.id]);
+    if (!insc) return res.status(404).json({ message: "La inscripción no existe" });
+    if (!(await permitido(req.user, insc.mesa_id))) return res.status(403).json({ message: "No tenés permisos" });
+
     if (req.body.ausente === true) {
       const result = await q(
         "UPDATE inscripciones_finales SET nota = NULL, ausente = 1 WHERE id = ?",
@@ -153,6 +170,7 @@ const cargarNotaFinal = async (req, res) => {
 
 const getInscriptosMesa = async (req, res) => {
   try {
+    if (!(await permitido(req.user, req.params.id))) return res.status(403).json({ message: "No tenés permisos" });
     const rows = await q(
       `SELECT inf.id, inf.user_id, inf.nota, inf.ausente, u.nombre
        FROM inscripciones_finales inf
