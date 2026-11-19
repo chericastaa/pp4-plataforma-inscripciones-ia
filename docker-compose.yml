@@ -57,9 +57,11 @@ services:
       ACADEMIC_SERVICE_URL: http://academic-service:4000
       USERS_SERVICE_URL: http://users-service:3001
       AI_BASE_URL: ${AI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}
-      AI_MODEL: ${AI_MODEL:-gemini-3.1-flash-lite}
+      AI_MODEL: ${AI_MODEL:-gemini-flash-lite-latest}
       AI_MODEL_RESPALDO: ${AI_MODEL_RESPALDO:-}
       AI_API_KEY: ${AI_API_KEY:-}
+      AI_BASE_URL_RESPALDO: ${AI_BASE_URL_RESPALDO:-}
+      AI_API_KEY_RESPALDO: ${AI_API_KEY_RESPALDO:-}
     depends_on:
       - academic-service
       - users-service

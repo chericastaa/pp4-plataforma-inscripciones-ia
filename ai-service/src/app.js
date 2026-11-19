@@ -4,7 +4,7 @@ const verificarToken = require("./auth");
 const { crearHerramientas } = require("./tools");
 
 const AI_BASE_URL = process.env.AI_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai";
-const AI_MODEL = process.env.AI_MODEL || "gemini-3.1-flash-lite";
+const AI_MODEL = process.env.AI_MODEL || "gemini-flash-lite-latest";
 const AI_API_KEY = process.env.AI_API_KEY || "";
 const MAX_VUELTAS = 4;
 const TIEMPO_MAXIMO_MS = 60000;
@@ -44,52 +44,60 @@ app.get("/", (req, res) => {
 });
 
 const MODELO_RESPALDO = process.env.AI_MODEL_RESPALDO || (AI_BASE_URL.includes("googleapis") ? "gemini-3.1-flash-lite" : "");
-const MODELOS = [AI_MODEL, MODELO_RESPALDO].filter(Boolean);
+const URL_RESPALDO = process.env.AI_BASE_URL_RESPALDO || AI_BASE_URL;
+const KEY_RESPALDO = process.env.AI_API_KEY_RESPALDO || AI_API_KEY;
+const PROVEEDORES = [
+  { nombre: "principal", url: AI_BASE_URL, key: AI_API_KEY, modelo: AI_MODEL },
+  { nombre: "respaldo", url: URL_RESPALDO, key: KEY_RESPALDO, modelo: MODELO_RESPALDO }
+].filter((p) => p.modelo);
 const REINTENTABLES = [429, 500, 502, 503, 504];
 
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function pedirModelo(modelo, mensajes, tools, restante) {
-  return fetch(`${AI_BASE_URL}/chat/completions`, {
+async function pedirModelo(p, mensajes, tools, restante) {
+  return fetch(`${p.url}/chat/completions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${AI_API_KEY}` },
-    body: JSON.stringify({ model: modelo, messages: mensajes, tools, temperature: 0.1, max_tokens: 500 }),
-    signal: AbortSignal.timeout(Math.min(30000, restante)),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${p.key}` },
+    body: JSON.stringify({ model: p.modelo, messages: mensajes, tools, temperature: 0.1, max_tokens: 500 }),
+    signal: AbortSignal.timeout(Math.min(15000, restante)),
   });
 }
 
-async function llamarModelo(mensajes, tools, limiteTiempo)  {
-  let ultimo = null;
+async function llamarModelo(mensajes, tools, limiteTiempo) {
+  for (const p of PROVEEDORES) {
+    for (let intento = 0; intento < 2; intento++) {
+      const restante = limiteTiempo - Date.now();
+      if (restante <= 0) break;
 
-  for (const modelo of MODELOS) {
-    for (let intento = 0; intento < 3; intento++) {
       try {
-        const restante = limiteTiempo - Date.now();
-if (restante <= 0) {
-  throw new Error("La solicitud tardó demasiado.");
-}
-const respuesta = await pedirModelo(modelo, mensajes, tools, restante);
+        const respuesta = await pedirModelo(p, mensajes, tools, restante);
+
         if (respuesta.ok) {
           const data = await respuesta.json();
+          if (p.nombre === "respaldo") {
+            console.warn(`[ia] respondio el respaldo (${p.modelo})`);
+          }
           return data.choices[0].message;
         }
 
         const detalle = await respuesta.text();
-        console.error(`Error de la IA (${modelo}):`, respuesta.status, detalle.slice(0, 200));
-        ultimo = respuesta.status;
+        console.error(`[ia] fallo ${p.nombre} (${p.modelo}):`, respuesta.status, detalle.slice(0, 200));
         if (!REINTENTABLES.includes(respuesta.status)) break;
       } catch (err) {
-        console.error(`Error de red con la IA (${modelo}):`, err.message);
-        ultimo = 0;
+        console.error(`[ia] fallo ${p.nombre} (${p.modelo}):`, err.message);
       }
+
       const espera = Math.min(1000 * (intento + 1), Math.max(0, limiteTiempo - Date.now()));
-if (espera > 0) await esperar(espera);
+      if (espera > 0) await esperar(espera);
+    }
+
+    if (p !== PROVEEDORES[PROVEEDORES.length - 1]) {
+      console.warn(`[ia] paso del ${p.nombre} al siguiente`);
     }
   }
 
-  const error = new Error(ultimo === 404
-    ? "La IA todavía se está descargando, probá de nuevo en unos minutos."
-    : "La IA está con mucha demanda en este momento, probá de nuevo en unos segundos.");
+  console.error("[ia] fallaron todos los proveedores");
+  const error = new Error("La IA está con mucha demanda en este momento, probá de nuevo en unos segundos.");
   error.status = 503;
   throw error;
 }
