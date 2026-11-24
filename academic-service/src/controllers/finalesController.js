@@ -75,6 +75,14 @@ const inscribirFinal = async (req, res) => {
       return res.status(400).json({ message: resultado.motivos.join(" · "), motivos: resultado.motivos });
     }
 
+    const [repetida] = await q(
+      "SELECT id FROM inscripciones_finales WHERE mesa_id = ? AND user_id = ?",
+      [mesaId, req.user.id]
+    );
+    if (repetida) {
+      return res.status(409).json({ message: "Ya estás anotado a esta mesa" });
+    }
+
     const confirmacion = await q(
   `UPDATE confirmaciones_pendientes
    SET estado = 'consumida'
@@ -98,6 +106,9 @@ const result = await q(
 );
     res.status(201).json({ message: "Te anotaste al final", id: result.insertId });
   } catch (err) {
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ message: "Ya estás anotado a esta mesa" });
+    }
     console.error("Error en finales/inscribir:", err);
     res.status(500).json({ message: "Error interno del servidor" });
   }
@@ -105,7 +116,7 @@ const result = await q(
 
 const bajaFinal = async (req, res) => {
   try {
-    const [insc] = await q("SELECT id, mesa_id, user_id, nota FROM inscripciones_finales WHERE id = ?", [req.params.id]);
+    const [insc] = await q("SELECT id, mesa_id, user_id, nota, ausente FROM inscripciones_finales WHERE id = ?", [req.params.id]);
     if (!insc) return res.status(404).json({ message: "La inscripción no existe" });
     if (req.user.rol === "alumno" && insc.user_id !== req.user.id) {
       return res.status(403).json({ message: "No podés dar de baja la inscripción de otro alumno" });
@@ -113,7 +124,9 @@ const bajaFinal = async (req, res) => {
     if (req.user.rol === "profesor" && !(await permitido(req.user, insc.mesa_id))) {
       return res.status(403).json({ message: "No tenés permisos" });
     }
-    if (insc.nota !== null) return res.status(400).json({ message: "Ese final ya tiene nota cargada" });
+    if (insc.nota !== null || insc.ausente) {
+      return res.status(400).json({ message: "Ese final ya tiene resultado cargado" });
+    }
 
     await q("DELETE FROM inscripciones_finales WHERE id = ?", [req.params.id]);
     res.json({ id: Number(req.params.id), deleted: true });
