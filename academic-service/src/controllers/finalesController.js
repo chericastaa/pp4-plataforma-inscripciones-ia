@@ -17,7 +17,7 @@ const permitido = async (usuario, mesaId) => {
 const getMesas = async (req, res) => {
   try {
     const usuario = await obtenerUsuario(req.user.id, req.headers.authorization).catch(() => null);
-    const carreraId = usuario?.carrera_id ?? null;
+    const carreraId = req.user.rol === "alumno" ? usuario?.carrera_id ?? null : null;
 
     const pasadas = req.user.rol !== "alumno" && req.query.todas === "1";
 

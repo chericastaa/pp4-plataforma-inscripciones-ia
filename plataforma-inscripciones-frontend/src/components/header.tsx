@@ -15,7 +15,10 @@ const menuPorRol: Record<string, { label: string; href: string }[]> = {
     { label: "Períodos y mesas", href: "/dashboard/periodos" },
     { label: "Reglas", href: "/dashboard/reglas" },
   ],
-  profesor: [{ label: "Mis materias", href: "/dashboard" }],
+  profesor: [
+    { label: "Mis materias", href: "/dashboard" },
+    { label: "Mesas de final", href: "/dashboard/finales" },
+  ],
   alumno: [
     { label: "Inicio", href: "/dashboard" },
     { label: "Plan de estudios", href: "/dashboard/plan" },
