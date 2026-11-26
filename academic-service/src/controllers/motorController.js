@@ -5,6 +5,30 @@ const { cargarDatosAlumno, obtenerUsuario } = require("../motor/datos");
 const alumnoObjetivo = (req) =>
   req.user.rol === "alumno" ? req.user.id : Number(req.query.user_id) || req.user.id;
 
+const accesoAlumno = async (req, res, next) => {
+  try {
+    const objetivo = Number(req.query.user_id);
+    if (req.user.rol === "profesor" && objetivo && objetivo !== req.user.id) {
+      const [propias] = await db.promise().query("SELECT id FROM materias WHERE profesor_id = ?", [req.user.id]);
+      const ids = propias.map((m) => m.id);
+      if (!ids.length) return res.status(403).json({ message: "Ese alumno no cursa ninguna de tus materias" });
+      const [cursa] = await db.promise().query(
+        `SELECT 1 FROM inscripciones WHERE user_id = ? AND materia_id IN (?)
+         UNION SELECT 1 FROM calificaciones WHERE user_id = ? AND materia_id IN (?)
+         UNION SELECT 1 FROM inscripciones_finales f JOIN mesas_finales mf ON mf.id = f.mesa_id WHERE f.user_id = ? AND mf.materia_id IN (?)
+         LIMIT 1`,
+        [objetivo, ids, objetivo, ids, objetivo, ids]
+      );
+      if (!cursa.length) return res.status(403).json({ message: "Ese alumno no cursa ninguna de tus materias" });
+      req.soloMaterias = ids;
+    }
+    next();
+  } catch (err) {
+    console.error("Error en acceso al alumno:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
 async function prepararMotor(req) {
   const userId = alumnoObjetivo(req);
   const [usuario, datos] = await Promise.all([
@@ -28,6 +52,7 @@ const getPlan = async (req, res) => {
 
     const materias = datos.materias
       .filter((m) => (carreraId ? m.carrera_id === carreraId : m.codigo))
+      .filter((m) => !req.soloMaterias || req.soloMaterias.includes(m.id))
       .map((m) => {
         const e = motor.estado(m.id);
         return {
@@ -90,4 +115,4 @@ const getPuedeRendir = async (req, res) => {
   }
 };
 
-module.exports = { getPlan, getPuedeCursar, getPuedeRendir };
+module.exports = { accesoAlumno, getPlan, getPuedeCursar, getPuedeRendir };

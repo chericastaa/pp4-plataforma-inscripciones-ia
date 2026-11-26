@@ -328,7 +328,7 @@ function crearHerramientas(user, token, contexto = { mensaje: "", historial: [] 
     },
 
     ver_situacion_de_alumno: {
-      descripcion: "Solo para profesores y admin: busca un alumno por nombre y devuelve el estado de cada materia de su plan.",
+      descripcion: "Solo para profesores y admin: busca un alumno por nombre y devuelve el estado de sus materias. Un profesor solo ve a los alumnos de sus propias materias.",
       parametros: { alumno: "Nombre del alumno" },
       soloStaff: true,
       ejecutar: async ({ alumno }) => {
@@ -336,7 +336,8 @@ function crearHerramientas(user, token, contexto = { mensaje: "", historial: [] 
         const buscado = normalizar(alumno);
         const a = usuarios.find((u) => u.rol === "alumno" && normalizar(u.nombre).includes(buscado));
         if (!a) return { error: `No encontré ningún alumno parecido a "${alumno}"` };
-        const materias = await plan(a.id);
+        const materias = await plan(a.id).catch((e) => e);
+        if (materias instanceof Error) return { error: materias.message };
         return {
           alumno: a.nombre,
           materias: materias.filter((m) => m.estado !== "no_cursada").map(resumen),
