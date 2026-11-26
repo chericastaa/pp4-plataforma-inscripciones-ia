@@ -54,7 +54,7 @@ export function PanelAlumno() {
     const cursando = materias.filter((m) => m.estado === "cursando" && m.dia && m.hora_inicio && m.hora_fin);
     const cursables = materias.filter((m) => m.cursar.permitido && (m.estado === "no_cursada" || m.estado === "libre"));
     const finales = mesas
-      .filter((x) => x.inscripcion_id || x.rendir.permitido)
+      .filter((x) => (x.inscripcion_id || x.rendir.permitido) && x.estado_materia !== "aprobada" && x.ausente !== 1)
       .sort((a, b) => Number(!!b.inscripcion_id) - Number(!!a.inscripcion_id) || a.fecha.localeCompare(b.fecha));
 
     return { aprobadas, promedio, periodos: [...periodos.entries()], cursando, cursables, finales };

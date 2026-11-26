@@ -121,7 +121,7 @@ export default function PlanDeEstudios() {
   const habilitaIds = new Set(habilita.map((m) => m.id));
 
   const aprobadas = materias.filter((m) => m.estado === "aprobada").length;
-  const finalesAbiertos = mesas.filter((x) => x.inscripcion_id || x.rendir.permitido);
+  const finalesAbiertos = mesas.filter((x) => (x.inscripcion_id || x.rendir.permitido) && x.estado_materia !== "aprobada" && x.ausente !== 1);
 
   if (cargando) return <div className={styles.pagina}><p className={styles.vacio}>Cargando tu plan...</p></div>;
 
